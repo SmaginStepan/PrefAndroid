@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Преферанс</string>
+
+    <!-- Main menu -->
+    <string name="menu_new_game">Новая игра</string>
+    <string name="menu_new_game_sub">начать новую игру</string>
+    <string name="menu_continue">Продолжить</string>
+    <string name="menu_continue_sub">продолжить ранее начатую игру</string>
+    <string name="menu_learning">Обучение</string>
+    <string name="menu_learning_sub">пройти обучающий курс</string>
+    <string name="menu_pulka">Пулька</string>
+    <string name="menu_pulka_sub">запись игры и расчёт вистов</string>
+    <string name="menu_settings">Настройки</string>
+    <string name="menu_settings_sub">изменить правила и настройки</string>
+    <string name="menu_records">Рекорды</string>
+    <string name="menu_records_sub">таблица лучших результатов</string>
+    <string name="menu_dictionary">Справочник</string>
+    <string name="menu_dictionary_sub">словарь игровых терминов</string>
+    <string name="menu_about">О программе</string>
+    <string name="menu_about_sub">сведения о программе</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Настройки</string>
+    <string name="rules_title">Правила</string>
+    <string name="settings_language">Язык:</string>
+    <string name="language_system">Как в системе</string>
+    <string name="settings_player_name">Имя игрока:</string>
+    <string name="settings_limit">Лимит пули:</string>
+    <string name="settings_game_type">Тип игры:</string>
+    <string name="settings_game_sochy">Сочинка</string>
+    <string name="settings_game_leningrad">Ленинградка (Питер)</string>
+    <string name="settings_game_rostov">Московская (Ростовка)</string>
+    <string name="settings_raspasy">Распасы</string>
+    <string name="settings_progression_none">Нет прогрессии (1,1,1,1…)</string>
+    <string name="settings_progression_arifm">Арифметическая (1,2,3,3…)</string>
+    <string name="settings_progression_geom">Геометрическая (1,2,4,4…)</string>
+    <string name="settings_exit">Выход</string>
+    <string name="settings_exit_easy">Простой (6,6,6…)</string>
+    <string name="settings_exit_med">Обычный (6,7,7…)</string>
+    <string name="settings_exit_hard">Сложный (6,7,8…)</string>
+    <string name="settings_miser_exit">Выход после сыгранного мизера</string>
+    <string name="settings_vist">Вист</string>
+    <string name="settings_consolation_zlob">«Жлобский»</string>
+    <string name="settings_consolation_gentlemen">«Джентльменский»</string>
+    <string name="settings_vist_full">Ответственный</string>
+    <string name="settings_vist_half">Полуответственный</string>
+    <string name="settings_prikup_consolation">Консоляция на прикупе</string>
+    <string name="save">Сохранить</string>
+
+    <!-- Game table -->
+    <string name="ai_name_1">Первый</string>
+    <string name="ai_name_2">Второй</string>
+    <string name="bid_pas">Пас</string>
+    <string name="bid_miser">Мизер!</string>
+    <string name="trump_nt">без козыря</string>
+    <string name="trump_spades">♠ пик</string>
+    <string name="trump_clubs">♣ треф</string>
+    <string name="trump_diamonds">♦ бубей</string>
+    <string name="trump_hearts">♥ червей</string>
+    <string name="game_btn_whist">Вист</string>
+    <string name="game_btn_pass">Пас</string>
+    <string name="game_btn_discard">Сбросить</string>
+    <string name="game_btn_not_selected">Не выбрано</string>
+    <string name="game_btn_open">В открытую</string>
+    <string name="game_btn_closed">В закрытую</string>
+    <string name="game_btn_hint">Совет</string>
+    <string name="game_btn_tricks">Взятки</string>
+    <string name="game_btn_close">Закрыть</string>
+    <string name="game_btn_show_prikup">Расклад\nи сброс</string>
+    <string name="game_thinking">Думаю…</string>
+    <string name="game_hint_your_move">Ваш ход</string>
+    <string name="game_hint_move_ai">Сделайте ход с руки ИИ %s</string>
+    <string name="game_hint_discard">Сбросьте лишние карты</string>
+    <string name="game_hint_you_take">Вы берёте, тапните для продолжения.</string>
+    <string name="game_hint_takes">Берёт %s, тапните для продолжения.</string>
+    <string name="game_hint_prikup">Прикуп открыт, тапните для продолжения.</string>
+    <string name="game_hint_bid">Ваше слово (ставка в торгах).</string>
+    <string name="game_hint_vist">Ваше слово (будете вистовать?)</string>
+    <string name="game_hint_choose">Объявите игру.</string>
+    <string name="game_hint_opening">Выберите как будем играть.</string>
+    <string name="game_hint_end">Розыгрыш окончен, тапните для продолжения.</string>
+    <string name="game_playing_fmt">Играется: %s</string>
+    <string name="game_playing_raspasy">Играются: Распасы</string>
+    <string name="game_role_contract">(играет)</string>
+    <string name="game_role_whist">(вистует)</string>
+    <string name="game_say_whist">Вист!</string>
+    <string name="game_say_pass">Пас</string>
+    <string name="game_say_open">В открытую!</string>
+    <string name="game_say_closed">В закрытую</string>
+    <string name="game_wrong_hand">Ход не с той руки! </string>
+    <string name="game_wrong_hand_yours">Вы должны сходить со своей руки</string>
+    <string name="game_wrong_hand_ai">Вы должны сходить с руки ИИ %s</string>
+    <string name="game_must_play">Нельзя сыграть %1$s, вы должны положить %2$s.</string>
+    <string name="game_advise_play">Советую вам сыграть %s</string>
+    <string name="game_advise_contract">Советую вам играть %s</string>
+    <string name="game_advise_bid">Советую вам сказать %s</string>
+    <string name="game_advise_discard">Советую вам сбросить %1$s и %2$s</string>
+    <string name="game_trick_led">Заходил</string>
+    <string name="game_trick_took">Взял</string>
+    <string name="game_vist_say">вист!</string>
+    <string name="game_pass_say">пас!</string>
+
+    <!-- Deal results -->
+    <string name="result_miser_ok">%s сыграл(а) мизер</string>
+    <string name="result_miser_fail">%1$s не сыграл(а) мизер, взял(а) %2$d</string>
+    <string name="result_half_dealer">, %s пошел(а) в пополаме</string>
+    <string name="result_raspasy">Распасы x%d:</string>
+    <string name="result_raspasy_taken">%1$s взял(а) %2$d</string>
+    <string name="result_normal_ok">%1$s сыграл(а) %2$d-ю</string>
+    <string name="result_normal_fail">%1$s не сыграл(а) %2$d-ю</string>
+    <string name="result_taken">, взял(а) %d</string>
+    <string name="result_halfvist">, полвиста(%1$d) получил(а) %2$s</string>
+    <string name="result_vister">, вистовал(а) %s</string>
+    <string name="result_visters">, вистовали %1$s и %2$s</string>
+    <string name="result_visters_taken">, взяли %1$d и %2$d</string>
+    <string name="result_custom">%1$s записал(а) %2$d</string>
+    <string name="result_to_gora"> в гору</string>
+    <string name="result_to_pulya"> в пулю</string>
+    <string name="result_to_visty"> вистов на %s</string>
+
+    <!-- Score sheet (pulka) -->
+    <string name="calc_title">Пулька</string>
+    <string name="calc_load">Загрузить</string>
+    <string name="calc_load_sub">загрузить ранее сохранённую пульку</string>
+    <string name="calc_3p">3 игрока</string>
+    <string name="calc_3p_sub">новая пулька на троих игроков</string>
+    <string name="calc_4p">4 игрока</string>
+    <string name="calc_4p_sub">новая пулька на четверых игроков</string>
+    <string name="calc_continue">Продолжить</string>
+    <string name="calc_continue_sub">продолжить запись предыдущей пульки</string>
+    <string name="sheet3_title">Пулька (3)</string>
+    <string name="sheet4_title">Пулька (4)</string>
+    <string name="sheet_help">Помощь</string>
+    <string name="sheet_save">Сохранить</string>
+    <string name="sheet_calc">Рассчитать</string>
+    <string name="sheet_record">Расклад</string>
+    <string name="sheet_history">История…</string>
+    <string name="sheet_enter_value">Введите значение для</string>
+    <string name="sheet_gora">ГОРА</string>
+    <string name="sheet_pulya">ПУЛЯ</string>
+    <string name="sheet_visty_on">ВИСТЫ на %s</string>
+    <string name="sheet_limit_label">Лимит пули</string>
+    <string name="sheet_limit_hint">(до скольких играем?)</string>
+    <string name="sheet_names_label">Имена игроков:</string>
+    <string name="sheet_rules_btn">Правила…</string>
+    <string name="sheet_saved">Данные сохранены</string>
+    <string name="sheet_dealer_label">Сдаёт игрок:</string>
+    <string name="sheet_continue">Продолжить</string>
+    <string name="sheet_score_btn">Счёт…</string>
+    <string name="close">Закрыть</string>
+
+    <!-- WriteGame -->
+    <string name="wg_title">Запись игры</string>
+    <string name="wg_raspasy">Распасы</string>
+    <string name="wg_miser">Мизер</string>
+    <string name="wg_game_6">Шестерная (заказано 6)</string>
+    <string name="wg_game_7">Семерная (заказано 7)</string>
+    <string name="wg_game_8">Восьмерная (заказано 8)</string>
+    <string name="wg_game_9">Девятерная (заказано 9)</string>
+    <string name="wg_game_10">Десятерная (заказано 10)</string>
+    <string name="wg_multiplier">Множитель:</string>
+    <string name="wg_taken">Взято взяток:</string>
+    <string name="wg_error">Проверьте введённые данные.</string>
+    <string name="wg_who_played">Кто играл?</string>
+    <string name="wg_dealer_fmt">(Сдаёт %s)</string>
+    <string name="wg_half_miser">Пополам со сдающим</string>
+    <string name="wg_whisted">вистовал(а)</string>
+    <string name="wg_contractor">Играет:</string>
+    <string name="wg_must_select">Выберите игрока.</string>
+
+    <!-- Results / Load / Help -->
+    <string name="results_title">Результаты</string>
+    <string name="load_title">Загрузить</string>
+    <string name="load_from">от %s</string>
+    <string name="load_players_fmt">%1$d игрока, лимит = %2$d</string>
+    <string name="help_title">Помощь</string>
+    <string name="help_q">Как пользоваться пулькой?</string>
+    <string name="help_tap">Просто тапните на любую цифру, чтобы отредактировать её значение.</string>
+    <string name="help_record">Вы можете добавить результат сыгранной партии, тапнув «%s».</string>
+    <string name="help_calc">Рассчитать результаты всей партии можно тапнув «%s».</string>
+    <string name="help_save">Если вы хотите сохранить пульку, тапните «%s».</string>
+    <string name="help_dealer">Стрелочкой отмечен сдающий игрок.</string>
+
+    <!-- High scores / Dictionary / Learning / GameLog / About -->
+    <string name="hs_title">Рекорды</string>
+    <string name="hs_new_record">Новый рекорд! Введите имя:</string>
+    <string name="hs_to_menu">В меню</string>
+    <string name="dict_title">Справочник</string>
+    <string name="dict_search">Поиск</string>
+    <string name="learn_title">Обучение</string>
+    <string name="learn_next">Дальше</string>
+    <string name="learn_end">Конец</string>
+    <string name="learn_prev">Назад</string>
+    <string name="log_title">История</string>
+    <string name="about_author">Автор: Степан Смагин</string>
+    <string name="about_designer">Дизайнер: Анна Желнина</string>
+    <string name="about_version">Версия: %s</string>
+    <string name="about_support">Поддержка:</string>
+    <string name="about_desc">Игра в преферанс.</string>
+    <string name="about_features">Особенности:</string>
+    <string name="about_f1">- Поддерживает разнообразные варианты правил и настроек.</string>
+    <string name="about_f2">- Режим игры против устройства</string>
+    <string name="about_f3">- Режим записи пули и расчёт вистов</string>
+    <string name="about_f4">- Обучающий курс и справочник по игре преферанс</string>
+</resources>

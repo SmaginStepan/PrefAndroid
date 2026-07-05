@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Preferans</string>
+
+    <!-- Main menu -->
+    <string name="menu_new_game">Nueva partida</string>
+    <string name="menu_new_game_sub">comenzar una nueva partida</string>
+    <string name="menu_continue">Continuar</string>
+    <string name="menu_continue_sub">reanudar la partida guardada</string>
+    <string name="menu_learning">Tutorial</string>
+    <string name="menu_learning_sub">hacer el curso de aprendizaje</string>
+    <string name="menu_pulka">Hoja de puntuación</string>
+    <string name="menu_pulka_sub">anotar partidas y contar vistas</string>
+    <string name="menu_settings">Ajustes</string>
+    <string name="menu_settings_sub">cambiar reglas y ajustes</string>
+    <string name="menu_records">Récords</string>
+    <string name="menu_records_sub">tabla de mejores resultados</string>
+    <string name="menu_dictionary">Glosario</string>
+    <string name="menu_dictionary_sub">diccionario de términos del juego</string>
+    <string name="menu_about">Acerca de</string>
+    <string name="menu_about_sub">información sobre la aplicación</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Ajustes</string>
+    <string name="rules_title">Reglas</string>
+    <string name="settings_language">Idioma:</string>
+    <string name="language_system">Según el sistema</string>
+    <string name="settings_player_name">Nombre del jugador:</string>
+    <string name="settings_limit">Límite de la pula:</string>
+    <string name="settings_game_type">Tipo de juego:</string>
+    <string name="settings_game_sochy">Sochi</string>
+    <string name="settings_game_leningrad">Leningrado (San Petersburgo)</string>
+    <string name="settings_game_rostov">Moscú (Rostov)</string>
+    <string name="settings_raspasy">Rondas de todos pasan</string>
+    <string name="settings_progression_none">Sin progresión (1,1,1,1…)</string>
+    <string name="settings_progression_arifm">Aritmética (1,2,3,3…)</string>
+    <string name="settings_progression_geom">Geométrica (1,2,4,4…)</string>
+    <string name="settings_exit">Salida</string>
+    <string name="settings_exit_easy">Fácil (6,6,6…)</string>
+    <string name="settings_exit_med">Normal (6,7,7…)</string>
+    <string name="settings_exit_hard">Difícil (6,7,8…)</string>
+    <string name="settings_miser_exit">Salida tras un misère jugado</string>
+    <string name="settings_vist">Whist</string>
+    <string name="settings_consolation_zlob">«Tacaño»</string>
+    <string name="settings_consolation_gentlemen">«De caballeros»</string>
+    <string name="settings_vist_full">Responsable</string>
+    <string name="settings_vist_half">Semirresponsable</string>
+    <string name="settings_prikup_consolation">Consolación en el talón</string>
+    <string name="save">Guardar</string>
+
+    <!-- Game table -->
+    <string name="ai_name_1">Oeste</string>
+    <string name="ai_name_2">Este</string>
+    <string name="bid_pas">Paso</string>
+    <string name="bid_miser">¡Miseria!</string>
+    <string name="trump_nt">sin triunfo</string>
+    <string name="trump_spades">♠ picas</string>
+    <string name="trump_clubs">♣ tréboles</string>
+    <string name="trump_diamonds">♦ diamantes</string>
+    <string name="trump_hearts">♥ corazones</string>
+    <string name="game_btn_whist">Whist</string>
+    <string name="game_btn_pass">Paso</string>
+    <string name="game_btn_discard">Descartar</string>
+    <string name="game_btn_not_selected">Sin elegir</string>
+    <string name="game_btn_open">Juego abierto</string>
+    <string name="game_btn_closed">Juego cerrado</string>
+    <string name="game_btn_hint">Consejo</string>
+    <string name="game_btn_tricks">Bazas</string>
+    <string name="game_btn_close">Cerrar</string>
+    <string name="game_btn_show_prikup">Reparto\ny descarte</string>
+    <string name="game_thinking">Pensando…</string>
+    <string name="game_hint_your_move">Tu turno</string>
+    <string name="game_hint_move_ai">Juega una carta de la mano de la IA %s</string>
+    <string name="game_hint_discard">Descarta las cartas sobrantes</string>
+    <string name="game_hint_you_take">Te llevas la baza, toca para continuar.</string>
+    <string name="game_hint_takes">%s se lleva la baza, toca para continuar.</string>
+    <string name="game_hint_prikup">El talón está abierto, toca para continuar.</string>
+    <string name="game_hint_bid">Tu palabra (apuesta en la subasta).</string>
+    <string name="game_hint_vist">Tu palabra (¿vas a whistear?)</string>
+    <string name="game_hint_choose">Declara tu juego.</string>
+    <string name="game_hint_opening">Elige cómo jugar.</string>
+    <string name="game_hint_end">La mano ha terminado, toca para continuar.</string>
+    <string name="game_playing_fmt">Se juega: %s</string>
+    <string name="game_playing_raspasy">Se juega: todos pasan</string>
+    <string name="game_role_contract">(declarante)</string>
+    <string name="game_role_whist">(whistea)</string>
+    <string name="game_say_whist">¡Whist!</string>
+    <string name="game_say_pass">Paso</string>
+    <string name="game_say_open">¡Juego abierto!</string>
+    <string name="game_say_closed">Juego cerrado</string>
+    <string name="game_wrong_hand">¡Mano equivocada! </string>
+    <string name="game_wrong_hand_yours">Debes jugar de tu propia mano</string>
+    <string name="game_wrong_hand_ai">Debes jugar de la mano de la IA %s</string>
+    <string name="game_must_play">No puedes jugar %1$s, debes servir %2$s.</string>
+    <string name="game_advise_play">Te aconsejo jugar %s</string>
+    <string name="game_advise_contract">Te aconsejo declarar %s</string>
+    <string name="game_advise_bid">Te aconsejo decir %s</string>
+    <string name="game_advise_discard">Te aconsejo descartar %1$s y %2$s</string>
+    <string name="game_trick_led">Salió</string>
+    <string name="game_trick_took">Se llevó</string>
+    <string name="game_vist_say">¡whist!</string>
+    <string name="game_pass_say">¡paso!</string>
+
+    <!-- Deal results -->
+    <string name="result_miser_ok">%s hizo la miseria</string>
+    <string name="result_miser_fail">%1$s falló la miseria, tomó %2$d</string>
+    <string name="result_half_dealer">, %s fue a medias</string>
+    <string name="result_raspasy">Todos pasan x%d:</string>
+    <string name="result_raspasy_taken">%1$s tomó %2$d</string>
+    <string name="result_normal_ok">%1$s hizo el juego de %2$d</string>
+    <string name="result_normal_fail">%1$s falló el juego de %2$d</string>
+    <string name="result_taken">, tomó %d</string>
+    <string name="result_halfvist">, medio whist (%1$d) para %2$s</string>
+    <string name="result_vister">, %s whisteó</string>
+    <string name="result_visters">, %1$s y %2$s whistearon</string>
+    <string name="result_visters_taken">, tomaron %1$d y %2$d</string>
+    <string name="result_custom">%1$s anotó %2$d</string>
+    <string name="result_to_gora"> a la montaña</string>
+    <string name="result_to_pulya"> a la pula</string>
+    <string name="result_to_visty"> whists sobre %s</string>
+
+    <!-- Score sheet (pulka) -->
+    <string name="calc_title">Hoja de puntuación</string>
+    <string name="calc_load">Cargar</string>
+    <string name="calc_load_sub">cargar una hoja guardada anteriormente</string>
+    <string name="calc_3p">3 jugadores</string>
+    <string name="calc_3p_sub">nueva hoja para tres jugadores</string>
+    <string name="calc_4p">4 jugadores</string>
+    <string name="calc_4p_sub">nueva hoja para cuatro jugadores</string>
+    <string name="calc_continue">Continuar</string>
+    <string name="calc_continue_sub">continuar la hoja anterior</string>
+    <string name="sheet3_title">Hoja (3)</string>
+    <string name="sheet4_title">Hoja (4)</string>
+    <string name="sheet_help">Ayuda</string>
+    <string name="sheet_save">Guardar</string>
+    <string name="sheet_calc">Calcular</string>
+    <string name="sheet_record">Anotar</string>
+    <string name="sheet_history">Historial…</string>
+    <string name="sheet_enter_value">Introduce el valor para</string>
+    <string name="sheet_gora">MONTAÑA</string>
+    <string name="sheet_pulya">PULA</string>
+    <string name="sheet_visty_on">WHISTS sobre %s</string>
+    <string name="sheet_limit_label">Límite de la pula</string>
+    <string name="sheet_limit_hint">(¿hasta cuánto jugamos?)</string>
+    <string name="sheet_names_label">Nombres de los jugadores:</string>
+    <string name="sheet_rules_btn">Reglas…</string>
+    <string name="sheet_saved">Datos guardados</string>
+    <string name="sheet_dealer_label">Reparte:</string>
+    <string name="sheet_continue">Continuar</string>
+    <string name="sheet_score_btn">Puntuación…</string>
+    <string name="close">Cerrar</string>
+
+    <!-- WriteGame -->
+    <string name="wg_title">Anotar una mano</string>
+    <string name="wg_raspasy">Todos pasan</string>
+    <string name="wg_miser">Miseria</string>
+    <string name="wg_game_6">Juego de seis (apuesta 6)</string>
+    <string name="wg_game_7">Juego de siete (apuesta 7)</string>
+    <string name="wg_game_8">Juego de ocho (apuesta 8)</string>
+    <string name="wg_game_9">Juego de nueve (apuesta 9)</string>
+    <string name="wg_game_10">Juego de diez (apuesta 10)</string>
+    <string name="wg_multiplier">Multiplicador:</string>
+    <string name="wg_taken">Bazas tomadas:</string>
+    <string name="wg_error">Comprueba los valores introducidos.</string>
+    <string name="wg_who_played">¿Quién jugó?</string>
+    <string name="wg_dealer_fmt">(%s reparte)</string>
+    <string name="wg_half_miser">A medias con el que reparte</string>
+    <string name="wg_whisted">whisteó</string>
+    <string name="wg_contractor">Declarante:</string>
+    <string name="wg_must_select">Selecciona al jugador.</string>
+
+    <!-- Results / Load / Help -->
+    <string name="results_title">Resultados</string>
+    <string name="load_title">Cargar</string>
+    <string name="load_from">del %s</string>
+    <string name="load_players_fmt">%1$d jugadores, límite = %2$d</string>
+    <string name="help_title">Ayuda</string>
+    <string name="help_q">¿Cómo usar la hoja de puntuación?</string>
+    <string name="help_tap">Solo toca cualquier número para editar su valor.</string>
+    <string name="help_record">Puedes añadir el resultado de una mano jugada tocando «%s».</string>
+    <string name="help_calc">Puedes calcular el total de la partida tocando «%s».</string>
+    <string name="help_save">Si quieres guardar la hoja, toca «%s».</string>
+    <string name="help_dealer">La flecha marca al que reparte.</string>
+
+    <!-- High scores / Dictionary / Learning / GameLog / About -->
+    <string name="hs_title">Récords</string>
+    <string name="hs_new_record">¡Nuevo récord! Escribe tu nombre:</string>
+    <string name="hs_to_menu">Al menú</string>
+    <string name="dict_title">Glosario</string>
+    <string name="dict_search">Buscar</string>
+    <string name="learn_title">Tutorial</string>
+    <string name="learn_next">Siguiente</string>
+    <string name="learn_end">Fin</string>
+    <string name="learn_prev">Atrás</string>
+    <string name="log_title">Historial</string>
+    <string name="about_author">Autor: Stepan Smagin</string>
+    <string name="about_designer">Diseñadora: Anna Zhelnina</string>
+    <string name="about_version">Versión: %s</string>
+    <string name="about_support">Soporte:</string>
+    <string name="about_desc">Juego de cartas Preferans.</string>
+    <string name="about_features">Características:</string>
+    <string name="about_f1">- Admite diversas variantes de reglas y ajustes.</string>
+    <string name="about_f2">- Modo de juego contra el dispositivo</string>
+    <string name="about_f3">- Hoja de puntuación con cálculo de whists</string>
+    <string name="about_f4">- Curso de aprendizaje y glosario de Preferans</string>
+</resources>

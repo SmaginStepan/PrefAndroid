@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Preferans</string>
+
+    <!-- Main menu -->
+    <string name="menu_new_game">New game</string>
+    <string name="menu_new_game_sub">start a new game</string>
+    <string name="menu_continue">Continue</string>
+    <string name="menu_continue_sub">resume the saved game</string>
+    <string name="menu_learning">Tutorial</string>
+    <string name="menu_learning_sub">take the training course</string>
+    <string name="menu_pulka">Score sheet</string>
+    <string name="menu_pulka_sub">record games and count whists</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_settings_sub">change rules and settings</string>
+    <string name="menu_records">High scores</string>
+    <string name="menu_records_sub">table of best results</string>
+    <string name="menu_dictionary">Glossary</string>
+    <string name="menu_dictionary_sub">dictionary of game terms</string>
+    <string name="menu_about">About</string>
+    <string name="menu_about_sub">information about the app</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="rules_title">Rules</string>
+    <string name="settings_language">Language:</string>
+    <string name="language_system">System default</string>
+    <string name="settings_player_name">Player name:</string>
+    <string name="settings_limit">Pool limit:</string>
+    <string name="settings_game_type">Game type:</string>
+    <string name="settings_game_sochy">Sochi</string>
+    <string name="settings_game_leningrad">Leningrad (St. Petersburg)</string>
+    <string name="settings_game_rostov">Moscow (Rostov)</string>
+    <string name="settings_raspasy">All-pass rounds</string>
+    <string name="settings_progression_none">No progression (1,1,1,1…)</string>
+    <string name="settings_progression_arifm">Arithmetic (1,2,3,3…)</string>
+    <string name="settings_progression_geom">Geometric (1,2,4,4…)</string>
+    <string name="settings_exit">Exit</string>
+    <string name="settings_exit_easy">Easy (6,6,6…)</string>
+    <string name="settings_exit_med">Normal (6,7,7…)</string>
+    <string name="settings_exit_hard">Hard (6,7,8…)</string>
+    <string name="settings_miser_exit">Exit after a played misère</string>
+    <string name="settings_vist">Whist</string>
+    <string name="settings_consolation_zlob">“Greedy”</string>
+    <string name="settings_consolation_gentlemen">“Gentleman’s”</string>
+    <string name="settings_vist_full">Responsible</string>
+    <string name="settings_vist_half">Half-responsible</string>
+    <string name="settings_prikup_consolation">Consolation on the talon</string>
+    <string name="save">Save</string>
+
+    <!-- Game table -->
+    <string name="ai_name_1">West</string>
+    <string name="ai_name_2">East</string>
+    <string name="bid_pas">Pass</string>
+    <string name="bid_miser">Misère!</string>
+    <string name="trump_nt">no trump</string>
+    <string name="trump_spades">♠ spades</string>
+    <string name="trump_clubs">♣ clubs</string>
+    <string name="trump_diamonds">♦ diamonds</string>
+    <string name="trump_hearts">♥ hearts</string>
+    <string name="game_btn_whist">Whist</string>
+    <string name="game_btn_pass">Pass</string>
+    <string name="game_btn_discard">Discard</string>
+    <string name="game_btn_not_selected">Not selected</string>
+    <string name="game_btn_open">Open play</string>
+    <string name="game_btn_closed">Closed play</string>
+    <string name="game_btn_hint">Advice</string>
+    <string name="game_btn_tricks">Tricks</string>
+    <string name="game_btn_close">Close</string>
+    <string name="game_btn_show_prikup">Layout\nand discard</string>
+    <string name="game_thinking">Thinking…</string>
+    <string name="game_hint_your_move">Your move</string>
+    <string name="game_hint_move_ai">Play a card from AI hand %s</string>
+    <string name="game_hint_discard">Discard the extra cards</string>
+    <string name="game_hint_you_take">You take the trick, tap to continue.</string>
+    <string name="game_hint_takes">%s takes, tap to continue.</string>
+    <string name="game_hint_prikup">The talon is open, tap to continue.</string>
+    <string name="game_hint_bid">Your word (bid in the auction).</string>
+    <string name="game_hint_vist">Your word (will you whist?)</string>
+    <string name="game_hint_choose">Declare your game.</string>
+    <string name="game_hint_opening">Choose how to play.</string>
+    <string name="game_hint_end">The deal is over, tap to continue.</string>
+    <string name="game_playing_fmt">Playing: %s</string>
+    <string name="game_playing_raspasy">Playing: all-pass</string>
+    <string name="game_role_contract">(declarer)</string>
+    <string name="game_role_whist">(whisting)</string>
+    <string name="game_say_whist">Whist!</string>
+    <string name="game_say_pass">Pass</string>
+    <string name="game_say_open">Open play!</string>
+    <string name="game_say_closed">Closed play</string>
+    <string name="game_wrong_hand">Wrong hand! </string>
+    <string name="game_wrong_hand_yours">You must play from your own hand</string>
+    <string name="game_wrong_hand_ai">You must play from AI hand %s</string>
+    <string name="game_must_play">Cannot play %1$s, you must follow with %2$s.</string>
+    <string name="game_advise_play">I advise you to play %s</string>
+    <string name="game_advise_contract">I advise you to declare %s</string>
+    <string name="game_advise_bid">I advise you to say %s</string>
+    <string name="game_advise_discard">I advise you to discard %1$s and %2$s</string>
+    <string name="game_trick_led">Led</string>
+    <string name="game_trick_took">Took</string>
+    <string name="game_vist_say">whist!</string>
+    <string name="game_pass_say">pass!</string>
+
+    <!-- Deal results -->
+    <string name="result_miser_ok">%s made the misère</string>
+    <string name="result_miser_fail">%1$s failed the misère, took %2$d</string>
+    <string name="result_half_dealer">, %s went halves</string>
+    <string name="result_raspasy">All-pass x%d:</string>
+    <string name="result_raspasy_taken">%1$s took %2$d</string>
+    <string name="result_normal_ok">%1$s made the %2$d-game</string>
+    <string name="result_normal_fail">%1$s failed the %2$d-game</string>
+    <string name="result_taken">, took %d</string>
+    <string name="result_halfvist">, half-whist (%1$d) goes to %2$s</string>
+    <string name="result_vister">, %s whisted</string>
+    <string name="result_visters">, %1$s and %2$s whisted</string>
+    <string name="result_visters_taken">, they took %1$d and %2$d</string>
+    <string name="result_custom">%1$s wrote %2$d</string>
+    <string name="result_to_gora"> to the mountain</string>
+    <string name="result_to_pulya"> to the pool</string>
+    <string name="result_to_visty"> whists on %s</string>
+
+    <!-- Score sheet (pulka) -->
+    <string name="calc_title">Score sheet</string>
+    <string name="calc_load">Load</string>
+    <string name="calc_load_sub">load a previously saved sheet</string>
+    <string name="calc_3p">3 players</string>
+    <string name="calc_3p_sub">new sheet for three players</string>
+    <string name="calc_4p">4 players</string>
+    <string name="calc_4p_sub">new sheet for four players</string>
+    <string name="calc_continue">Continue</string>
+    <string name="calc_continue_sub">continue the previous sheet</string>
+    <string name="sheet3_title">Score sheet (3)</string>
+    <string name="sheet4_title">Score sheet (4)</string>
+    <string name="sheet_help">Help</string>
+    <string name="sheet_save">Save</string>
+    <string name="sheet_calc">Total</string>
+    <string name="sheet_record">Record</string>
+    <string name="sheet_history">History…</string>
+    <string name="sheet_enter_value">Enter the value for</string>
+    <string name="sheet_gora">MOUNTAIN</string>
+    <string name="sheet_pulya">POOL</string>
+    <string name="sheet_visty_on">WHISTS on %s</string>
+    <string name="sheet_limit_label">Pool limit</string>
+    <string name="sheet_limit_hint">(how far do we play?)</string>
+    <string name="sheet_names_label">Player names:</string>
+    <string name="sheet_rules_btn">Rules…</string>
+    <string name="sheet_saved">Data saved</string>
+    <string name="sheet_dealer_label">Dealer:</string>
+    <string name="sheet_continue">Continue</string>
+    <string name="sheet_score_btn">Score…</string>
+    <string name="close">Close</string>
+
+    <!-- WriteGame -->
+    <string name="wg_title">Record a deal</string>
+    <string name="wg_raspasy">All-pass</string>
+    <string name="wg_miser">Misère</string>
+    <string name="wg_game_6">Six game (bid 6)</string>
+    <string name="wg_game_7">Seven game (bid 7)</string>
+    <string name="wg_game_8">Eight game (bid 8)</string>
+    <string name="wg_game_9">Nine game (bid 9)</string>
+    <string name="wg_game_10">Ten game (bid 10)</string>
+    <string name="wg_multiplier">Multiplier:</string>
+    <string name="wg_taken">Tricks taken:</string>
+    <string name="wg_error">Check the entered values.</string>
+    <string name="wg_who_played">Who played?</string>
+    <string name="wg_dealer_fmt">(%s deals)</string>
+    <string name="wg_half_miser">Halves with the dealer</string>
+    <string name="wg_whisted">whisted</string>
+    <string name="wg_contractor">Declarer:</string>
+    <string name="wg_must_select">Select the player.</string>
+
+    <!-- Results / Load / Help -->
+    <string name="results_title">Results</string>
+    <string name="load_title">Load</string>
+    <string name="load_from">from %s</string>
+    <string name="load_players_fmt">%1$d players, limit = %2$d</string>
+    <string name="help_title">Help</string>
+    <string name="help_q">How to use the score sheet?</string>
+    <string name="help_tap">Just tap any number to edit its value.</string>
+    <string name="help_record">You can add the result of a played deal by tapping “%s”.</string>
+    <string name="help_calc">You can total the whole game by tapping “%s”.</string>
+    <string name="help_save">If you want to save the sheet, tap “%s”.</string>
+    <string name="help_dealer">The arrow marks the dealer.</string>
+
+    <!-- High scores / Dictionary / Learning / GameLog / About -->
+    <string name="hs_title">High scores</string>
+    <string name="hs_new_record">New record! Enter your name:</string>
+    <string name="hs_to_menu">To menu</string>
+    <string name="dict_title">Glossary</string>
+    <string name="dict_search">Search</string>
+    <string name="learn_title">Tutorial</string>
+    <string name="learn_next">Next</string>
+    <string name="learn_end">Finish</string>
+    <string name="learn_prev">Back</string>
+    <string name="log_title">History</string>
+    <string name="about_author">Author: Stepan Smagin</string>
+    <string name="about_designer">Designer: Anna Zhelnina</string>
+    <string name="about_version">Version: %s</string>
+    <string name="about_support">Support:</string>
+    <string name="about_desc">A Preferans card game.</string>
+    <string name="about_features">Features:</string>
+    <string name="about_f1">- Supports a variety of rule variants and settings.</string>
+    <string name="about_f2">- Play against the device</string>
+    <string name="about_f3">- Score sheet mode with whist calculation</string>
+    <string name="about_f4">- Tutorial course and glossary of Preferans</string>
+</resources>
