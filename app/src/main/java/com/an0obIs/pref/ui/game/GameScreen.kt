@@ -37,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -202,6 +203,7 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit) {
         for (pc in vm.field + vm.pinnedOverlays) {
             Image(
                 bitmap = images.get(pc.card),
+                filterQuality = FilterQuality.High,
                 contentDescription = pc.card?.toString(),
                 modifier = Modifier
                     .offset(x = ux(pc.x), y = uy(pc.y))
@@ -220,6 +222,7 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit) {
             val y = anim.fromY + (anim.toY - anim.fromY) * t
             Image(
                 bitmap = images.get(anim.card),
+                filterQuality = FilterQuality.High,
                 contentDescription = null,
                 modifier = Modifier
                     .offset(x = ux(x), y = uy(y))
@@ -236,6 +239,7 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit) {
                 val y = pc.y + (anim.toY - pc.y) * t
                 Image(
                     bitmap = images.get(pc.card),
+                    filterQuality = FilterQuality.High,
                     contentDescription = null,
                     modifier = Modifier
                         .offset(x = ux(x), y = uy(y))
@@ -503,11 +507,11 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit) {
                                 horizontalArrangement = Arrangement.Center
                             ) {
                                 take.prikupMove?.let {
-                                    Image(bitmap = images.get(it), contentDescription = null, modifier = Modifier.size(34.dp))
+                                    Image(bitmap = images.get(it), filterQuality = FilterQuality.High, contentDescription = null, modifier = Modifier.size(34.dp))
                                 }
-                                Image(bitmap = images.get(take.nextMove), contentDescription = null, modifier = Modifier.size(34.dp))
-                                Image(bitmap = images.get(take.prevMove), contentDescription = null, modifier = Modifier.size(34.dp))
-                                Image(bitmap = images.get(take.myMove), contentDescription = null, modifier = Modifier.size(34.dp))
+                                Image(bitmap = images.get(take.nextMove), filterQuality = FilterQuality.High, contentDescription = null, modifier = Modifier.size(34.dp))
+                                Image(bitmap = images.get(take.prevMove), filterQuality = FilterQuality.High, contentDescription = null, modifier = Modifier.size(34.dp))
+                                Image(bitmap = images.get(take.myMove), filterQuality = FilterQuality.High, contentDescription = null, modifier = Modifier.size(34.dp))
                             }
                             Text(
                                 text = vm.tricksNames[take.takenBy] ?: "",
