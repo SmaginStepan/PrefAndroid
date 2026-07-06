@@ -13,6 +13,9 @@ import kotlinx.serialization.json.JsonElement
 val protocolJson = Json {
     ignoreUnknownKeys = true
     encodeDefaults = true
+    // zod's .optional() on the server accepts a MISSING field but rejects null;
+    // omit null fields instead of emitting "field":null
+    explicitNulls = false
     classDiscriminator = "type"
 }
 

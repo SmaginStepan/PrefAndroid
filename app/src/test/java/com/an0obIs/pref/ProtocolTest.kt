@@ -31,6 +31,14 @@ class ProtocolTest {
         )
         assertTrue(create.contains("\"type\":\"create_room\""))
         assertTrue(create.contains("\"maxSeats\":4"))
+        // zod .optional() rejects explicit null — the field must be absent
+        assertTrue("null password must be omitted", !create.contains("password"))
+
+        val addBot = protocolJson.encodeToString(
+            ClientMsg.serializer(),
+            ClientMsg.AddBot(seat = null)
+        )
+        assertTrue("null seat must be omitted", !addBot.contains("seat"))
     }
 
     @Test

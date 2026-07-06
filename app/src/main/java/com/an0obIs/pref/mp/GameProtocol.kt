@@ -20,6 +20,7 @@ import kotlinx.serialization.json.JsonClassDiscriminator
 val gameJson = Json {
     ignoreUnknownKeys = true
     encodeDefaults = true
+    explicitNulls = false // keep Act/State payloads free of "field":null noise
     classDiscriminator = "t"
 }
 
