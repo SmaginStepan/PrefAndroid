@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** Immutable snapshot of everything the table UI needs to render texts. */
+@kotlinx.serialization.Serializable
 data class TableInfo(
     val phase: GamePhase = GamePhase.NotStarted,
     val names: List<String> = listOf("", "", ""),

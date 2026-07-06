@@ -3,12 +3,15 @@ package com.an0obIs.pref.ui.game
 import com.an0obIs.pref.model.Card
 import com.an0obIs.pref.model.Game
 import com.an0obIs.pref.model.GamePhase
+import kotlinx.serialization.Serializable
 
 /**
  * A card placed on the virtual 480x716 table (the original WP7 canvas size).
  * All geometry below is a direct port of GameMain.xaml.cs drawing code;
  * the composable scales these units to the actual screen.
+ * Serializable: hosted multiplayer sends per-viewer placements to guests.
  */
+@Serializable
 data class PlacedCard(
     val card: Card?, // null = face down
     val hand: Int,

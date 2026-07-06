@@ -59,6 +59,14 @@ class Game {
     @Transient
     var onProgress: (() -> Unit)? = null
 
+    /**
+     * Multiplayer hosting: when true, the loop never auto-plays anyone —
+     * every seat waits for the external driver (HostGameSession), which
+     * dispatches to the local UI, the AI, or a remote player.
+     */
+    @Transient
+    var externalDriver: Boolean = false
+
     class Animation {
         var player: Int = 0
         var card: Card? = null
@@ -118,7 +126,8 @@ class Game {
 
     // Является ли текущий игрок ИИ?
     private fun isAI(): Boolean {
-        // TODO: Режим игры нескольких игроков
+        if (externalDriver)
+            return false
         val isOpened = isOpened
         val playerIsVister = contractor != 0 && isVister.containsKey(0) && isVister[0] == true
         val isVistPlaying = contractor != playerInTurn && phase == GamePhase.Playing && currentGameType == GameType.Normal
@@ -172,7 +181,9 @@ class Game {
         curentBids = mutableMapOf()
         isVister = mutableMapOf()
         deal = Deal()
-        deal.hands[0].isVisible = true
+        // in single player seat 0 is the local human; in hosted multiplayer
+        // no hand is publicly visible until the play opens it
+        deal.hands[0].isVisible = !externalDriver
         phase = GamePhase.Negotiations
         maxBid = null
         trump = -1
