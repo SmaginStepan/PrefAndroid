@@ -33,6 +33,7 @@ import com.an0obIs.pref.ui.misc.DictionaryScreen
 import com.an0obIs.pref.ui.misc.GameLogScreen
 import com.an0obIs.pref.ui.misc.HighScoresScreen
 import com.an0obIs.pref.ui.misc.LearningScreen
+import com.an0obIs.pref.ui.mp.MultiplayerScreen
 
 object Routes {
     const val MENU = "menu"
@@ -52,6 +53,7 @@ object Routes {
     const val LEARNING = "learning"
     const val ABOUT = "about"
     const val GAME_LOG = "gamelog"
+    const val MULTIPLAYER = "multiplayer"
 }
 
 class MainActivity : AppCompatActivity() {
@@ -97,6 +99,7 @@ class MainActivity : AppCompatActivity() {
                         navController.navigate(Routes.GAME)
                     },
                     onContinue = { navController.navigate(Routes.GAME) },
+                    onMultiplayer = { navController.navigate(Routes.MULTIPLAYER) },
                     onLearning = { navController.navigate(Routes.LEARNING) },
                     onCalc = { navController.navigate(Routes.CALC) },
                     onSettings = { navController.navigate(Routes.SETTINGS) },
@@ -274,6 +277,9 @@ class MainActivity : AppCompatActivity() {
                     "1.0"
                 }
                 AboutScreen(versionName = version)
+            }
+            composable(Routes.MULTIPLAYER) {
+                MultiplayerScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.GAME_LOG) {
                 val calc = app.calc ?: app.game?.calc

@@ -203,4 +203,37 @@
     <string name="about_f2">- Play against the device</string>
     <string name="about_f3">- Score sheet mode with whist calculation</string>
     <string name="about_f4">- Tutorial course and glossary of Preferans</string>
+
+    <!-- Multiplayer -->
+    <string name="mp_menu">Online game</string>
+    <string name="mp_menu_sub">play with friends over the internet</string>
+    <string name="mp_title">Online</string>
+    <string name="mp_connecting">Connecting…</string>
+    <string name="mp_disconnected">No connection — retrying…</string>
+    <string name="mp_no_rooms">No open games. Create one!</string>
+    <string name="mp_create">Create game</string>
+    <string name="mp_players_fmt">%1$d/%2$d players</string>
+    <string name="mp_host_fmt">host: %s</string>
+    <string name="mp_room_name">Game name</string>
+    <string name="mp_seats">Players:</string>
+    <string name="mp_password_optional">Password (optional)</string>
+    <string name="mp_password_title">This game is protected</string>
+    <string name="mp_password_label">Password</string>
+    <string name="mp_join">Join</string>
+    <string name="mp_room_code_fmt">Game code: %s</string>
+    <string name="mp_waiting_host">Waiting for the host to start…</string>
+    <string name="mp_start">Start game</string>
+    <string name="mp_add_bot">Add bot</string>
+    <string name="mp_kick">Kick</string>
+    <string name="mp_leave">Leave</string>
+    <string name="mp_you">(you)</string>
+    <string name="mp_bot">bot</string>
+    <string name="mp_offline">offline</string>
+    <string name="mp_started_stub">The game is starting! Network play arrives in the next update — the lobby is live already.</string>
+    <string name="mp_err_kicked">The host removed you from the game.</string>
+    <string name="mp_err_room_closed">The host left — the game was closed.</string>
+    <string name="mp_err_bad_password">Wrong password.</string>
+    <string name="mp_err_room_full">The game is full.</string>
+    <string name="mp_err_playing">That game has already started.</string>
+    <string name="mp_err_generic">Something went wrong (%s).</string>
 </resources>

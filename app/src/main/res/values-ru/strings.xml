@@ -203,4 +203,37 @@
     <string name="about_f2">- Режим игры против устройства</string>
     <string name="about_f3">- Режим записи пули и расчёт вистов</string>
     <string name="about_f4">- Обучающий курс и справочник по игре преферанс</string>
+
+    <!-- Multiplayer -->
+    <string name="mp_menu">Игра по сети</string>
+    <string name="mp_menu_sub">играйте с друзьями через интернет</string>
+    <string name="mp_title">По сети</string>
+    <string name="mp_connecting">Подключение…</string>
+    <string name="mp_disconnected">Нет соединения — повторяем…</string>
+    <string name="mp_no_rooms">Открытых игр нет. Создайте свою!</string>
+    <string name="mp_create">Создать игру</string>
+    <string name="mp_players_fmt">%1$d/%2$d игроков</string>
+    <string name="mp_host_fmt">ведущий: %s</string>
+    <string name="mp_room_name">Название игры</string>
+    <string name="mp_seats">Игроков:</string>
+    <string name="mp_password_optional">Пароль (необязательно)</string>
+    <string name="mp_password_title">Игра защищена паролем</string>
+    <string name="mp_password_label">Пароль</string>
+    <string name="mp_join">Войти</string>
+    <string name="mp_room_code_fmt">Код игры: %s</string>
+    <string name="mp_waiting_host">Ждём, когда ведущий начнёт…</string>
+    <string name="mp_start">Начать игру</string>
+    <string name="mp_add_bot">Добавить бота</string>
+    <string name="mp_kick">Выгнать</string>
+    <string name="mp_leave">Выйти</string>
+    <string name="mp_you">(вы)</string>
+    <string name="mp_bot">бот</string>
+    <string name="mp_offline">не в сети</string>
+    <string name="mp_started_stub">Игра начинается! Сетевая партия появится в следующем обновлении — лобби уже работает.</string>
+    <string name="mp_err_kicked">Ведущий исключил вас из игры.</string>
+    <string name="mp_err_room_closed">Ведущий вышел — игра закрыта.</string>
+    <string name="mp_err_bad_password">Неверный пароль.</string>
+    <string name="mp_err_room_full">В игре нет мест.</string>
+    <string name="mp_err_playing">Эта игра уже началась.</string>
+    <string name="mp_err_generic">Что-то пошло не так (%s).</string>
 </resources>

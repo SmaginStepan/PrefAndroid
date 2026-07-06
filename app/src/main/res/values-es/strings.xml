@@ -203,4 +203,37 @@
     <string name="about_f2">- Modo de juego contra el dispositivo</string>
     <string name="about_f3">- Hoja de puntuación con cálculo de whists</string>
     <string name="about_f4">- Curso de aprendizaje y glosario de Preferans</string>
+
+    <!-- Multiplayer -->
+    <string name="mp_menu">Juego en línea</string>
+    <string name="mp_menu_sub">juega con amigos por internet</string>
+    <string name="mp_title">En línea</string>
+    <string name="mp_connecting">Conectando…</string>
+    <string name="mp_disconnected">Sin conexión — reintentando…</string>
+    <string name="mp_no_rooms">No hay partidas abiertas. ¡Crea una!</string>
+    <string name="mp_create">Crear partida</string>
+    <string name="mp_players_fmt">%1$d/%2$d jugadores</string>
+    <string name="mp_host_fmt">anfitrión: %s</string>
+    <string name="mp_room_name">Nombre de la partida</string>
+    <string name="mp_seats">Jugadores:</string>
+    <string name="mp_password_optional">Contraseña (opcional)</string>
+    <string name="mp_password_title">Esta partida está protegida</string>
+    <string name="mp_password_label">Contraseña</string>
+    <string name="mp_join">Entrar</string>
+    <string name="mp_room_code_fmt">Código de la partida: %s</string>
+    <string name="mp_waiting_host">Esperando a que el anfitrión empiece…</string>
+    <string name="mp_start">Empezar partida</string>
+    <string name="mp_add_bot">Añadir bot</string>
+    <string name="mp_kick">Expulsar</string>
+    <string name="mp_leave">Salir</string>
+    <string name="mp_you">(tú)</string>
+    <string name="mp_bot">bot</string>
+    <string name="mp_offline">desconectado</string>
+    <string name="mp_started_stub">¡La partida empieza! El juego en red llega en la próxima actualización — el lobby ya funciona.</string>
+    <string name="mp_err_kicked">El anfitrión te ha expulsado de la partida.</string>
+    <string name="mp_err_room_closed">El anfitrión se fue — la partida se cerró.</string>
+    <string name="mp_err_bad_password">Contraseña incorrecta.</string>
+    <string name="mp_err_room_full">La partida está llena.</string>
+    <string name="mp_err_playing">Esa partida ya ha empezado.</string>
+    <string name="mp_err_generic">Algo salió mal (%s).</string>
 </resources>

@@ -12,6 +12,7 @@ class AppSettings {
         var rules: GameRules = GameRules()
         var playerName: String = "Игрок"
         var limit: Int = 40
+        var playerId: String = ""
     }
 
     private var data: Data = load()
@@ -50,6 +51,16 @@ class AppSettings {
                 return
             data.limit = value
             save()
+        }
+
+    /** Stable device identity for multiplayer; doubles as the reconnect token. */
+    val playerId: String
+        get() {
+            if (data.playerId.isEmpty()) {
+                data.playerId = java.util.UUID.randomUUID().toString()
+                save()
+            }
+            return data.playerId
         }
 
     companion object {
