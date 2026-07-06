@@ -57,16 +57,14 @@ import com.an0obIs.pref.model.Card
 import com.an0obIs.pref.model.GamePhase
 import com.an0obIs.pref.model.GameType
 
-/** Loads and caches card sprites; phones get the original art, tablets the HD set. */
+/** Loads and caches card sprites (one soft-upscaled set for all devices). */
 class CardImages(private val ctx: Context) {
     private val cache = mutableMapOf<String, ImageBitmap>()
-    private val cardsDir =
-        if (ctx.resources.configuration.smallestScreenWidthDp >= 600) "cards" else "cards_sd"
 
     fun get(card: Card?): ImageBitmap {
         val cid = if (card == null) "0" else "${card.value}${"scdh"[card.coatColor]}"
         return cache.getOrPut(cid) {
-            ctx.assets.open("$cardsDir/$cid.png").use {
+            ctx.assets.open("cards/$cid.png").use {
                 BitmapFactory.decodeStream(it).asImageBitmap()
             }
         }
