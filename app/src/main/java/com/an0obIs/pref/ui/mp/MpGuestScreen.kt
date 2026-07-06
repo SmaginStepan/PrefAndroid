@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -118,7 +119,7 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
             contentScale = ContentScale.FillBounds
         )
 
-        val strings = buildTableStrings(ctx, st.info)
+        val strings = buildTableStrings(ctx, st.info, mp = true)
         val hintText = when {
             st.badMove -> stringResource(R.string.mp_bad_move)
             st.ended -> stringResource(R.string.mp_game_over)
@@ -175,8 +176,9 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
             com.an0obIs.pref.ui.game.ScoreOverlay(
                 snap = snap,
                 modifier = Modifier
-                    .offset(x = ux(40.0), y = uy(150.0))
-                    .width(ux(400.0)),
+                    .offset(x = ux(25.0), y = uy(100.0))
+                    .width(ux(430.0))
+                    .aspectRatio(480f / 550f),
                 onTap = { if (ask?.kind == "confirm") act(GameMsg.Act(confirm = true)) }
             )
         }
@@ -244,15 +246,15 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
             if (btn1 != null) {
                 Button(
                     onClick = btn1.second,
-                    modifier = Modifier.offset(x = ux(127.0), y = uy(330.0)).width(ux(227.0))
-                ) { Text(btn1.first) }
+                    modifier = Modifier.offset(x = ux(152.0), y = uy(330.0)).width(ux(176.0))
+                ) { Text(btn1.first, maxLines = 1) }
             }
             if (btn2 != null) {
                 Button(
                     onClick = btn2.third,
                     enabled = btn2.second,
-                    modifier = Modifier.offset(x = ux(127.0), y = uy(385.0)).width(ux(227.0))
-                ) { Text(btn2.first) }
+                    modifier = Modifier.offset(x = ux(152.0), y = uy(385.0)).width(ux(176.0))
+                ) { Text(btn2.first, maxLines = 1) }
             }
         }
 

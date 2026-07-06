@@ -32,13 +32,14 @@ data class Ask(
     val allowed: List<Card>? = null
 )
 
-/** Compact score standing shown between deals (already rotated per viewer). */
+/** Score standing shown between deals (already rotated per viewer). */
 @Serializable
 data class ScoreSnap(
     val names: List<String>,
     val pulya: List<Int>,
     val gora: List<Int>,
-    val whists: List<Int>,
+    /** visty[i][j] = whists player i has written on player j (diagonal 0). */
+    val visty: List<List<Int>>,
     val limit: Int
 )
 

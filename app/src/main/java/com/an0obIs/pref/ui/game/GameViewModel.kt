@@ -328,8 +328,17 @@ class GameViewModel : ViewModel() {
         }
     }
 
+    /** In hosted games the local player may only act on their own turn. */
+    private val localTurnAllowed: Boolean
+        get() = !hosted || game.playerInTurn == 0
+
     /** Port of Draw()'s menu construction. */
     private fun buildMenu() {
+        if (!localTurnAllowed) {
+            menuBids = emptyList()
+            selectedBid = null
+            return
+        }
         when (game.phase) {
             GamePhase.Negotiations -> {
                 val bids = game.getAllowedBids().filter { !it.pas }
@@ -355,7 +364,7 @@ class GameViewModel : ViewModel() {
     // region interactions
 
     fun onCardTap(pc: PlacedCard) {
-        if (busy) return
+        if (busy || !localTurnAllowed) return
         val card = pc.card ?: return
         if (pc.isInPlay || pc.isPrikup) return
         if (game.phase == GamePhase.Playing) {
@@ -413,6 +422,7 @@ class GameViewModel : ViewModel() {
             showTricks = false
             return
         }
+        if (!localTurnAllowed) return
         when (game.phase) {
             GamePhase.PrikupOpened -> {
                 game.prikupClose()
@@ -459,7 +469,7 @@ class GameViewModel : ViewModel() {
 
     /** Port of btnChoice1_Tap. */
     fun onButton1() {
-        if (busy) return
+        if (busy || !localTurnAllowed) return
         when (game.phase) {
             GamePhase.Negotiations -> {
                 val bid = selectedBid ?: return
@@ -486,7 +496,7 @@ class GameViewModel : ViewModel() {
 
     /** Port of btnChoice2_Tap. */
     fun onButton2() {
-        if (busy) return
+        if (busy || !localTurnAllowed) return
         when (game.phase) {
             GamePhase.Negotiations -> {
                 game.makeBid(Game.Bid().also { it.pas = true })
@@ -523,7 +533,7 @@ class GameViewModel : ViewModel() {
 
     /** Port of btnHint_Tap — runs the AI on behalf of the player (may take a moment). */
     fun requestAdvice() {
-        if (busy) return
+        if (busy || !localTurnAllowed) return
         viewModelScope.launch {
             busy = true
             thinking = true

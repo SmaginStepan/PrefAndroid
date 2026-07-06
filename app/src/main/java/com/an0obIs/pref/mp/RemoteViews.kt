@@ -86,7 +86,7 @@ object RemoteViews {
         )
     }
 
-    /** Score standing rotated for one viewer (whists as the written sum). */
+    /** Score standing rotated for one viewer, with the full whist matrix. */
     fun buildScoresFor(game: Game, viewer: Int): ScoreSnap {
         fun idx(rel: Int) = (rel + viewer) % 3
         val sc = game.calc.scores
@@ -94,7 +94,9 @@ object RemoteViews {
             names = List(3) { sc[idx(it)].name },
             pulya = List(3) { sc[idx(it)].pulya },
             gora = List(3) { sc[idx(it)].gora },
-            whists = List(3) { i -> sc[idx(i)].visty.values.sum() },
+            visty = List(3) { i ->
+                List(3) { j -> if (i == j) 0 else (sc[idx(i)].visty[idx(j)] ?: 0) }
+            },
             limit = game.calc.limit
         )
     }

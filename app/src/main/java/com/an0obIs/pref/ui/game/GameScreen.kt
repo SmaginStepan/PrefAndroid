@@ -11,6 +11,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -56,14 +57,16 @@ import com.an0obIs.pref.model.Card
 import com.an0obIs.pref.model.GamePhase
 import com.an0obIs.pref.model.GameType
 
-/** Loads and caches card sprites from assets/cards. */
+/** Loads and caches card sprites; phones get the original art, tablets the HD set. */
 class CardImages(private val ctx: Context) {
     private val cache = mutableMapOf<String, ImageBitmap>()
+    private val cardsDir =
+        if (ctx.resources.configuration.smallestScreenWidthDp >= 600) "cards" else "cards_sd"
 
     fun get(card: Card?): ImageBitmap {
         val cid = if (card == null) "0" else "${card.value}${"scdh"[card.coatColor]}"
         return cache.getOrPut(cid) {
-            ctx.assets.open("cards/$cid.png").use {
+            ctx.assets.open("$cardsDir/$cid.png").use {
                 BitmapFactory.decodeStream(it).asImageBitmap()
             }
         }
@@ -86,7 +89,17 @@ internal data class TableStrings(
 )
 
 /** Port of DrawField's text section. Shared with the multiplayer guest screen. */
-internal fun buildTableStrings(ctx: Context, info: TableInfo): TableStrings {
+internal fun buildTableStrings(ctx: Context, info: TableInfo, mp: Boolean = false): TableStrings {
+    val base = buildTableStringsInner(ctx, info)
+    // In multiplayer, action hints belong only to the player in turn; everyone
+    // else sees whose move the table is waiting for.
+    if (mp && info.playerInTurn != 0 && info.phase != GamePhase.Ended) {
+        return base.copy(hint = ctx.getString(R.string.mp_waiting_for, info.names[info.playerInTurn]))
+    }
+    return base
+}
+
+private fun buildTableStringsInner(ctx: Context, info: TableInfo): TableStrings {
     var p0 = GameTexts.playerInfo(ctx, info, 0)
     var p1 = GameTexts.playerInfo(ctx, info, 1)
     var p2 = GameTexts.playerInfo(ctx, info, 2)
@@ -215,7 +228,7 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
         )
 
         val info = vm.info
-        val strings = buildTableStrings(ctx, info)
+        val strings = buildTableStrings(ctx, info, mp = vm.hosted)
         val hintText = vm.transientHint?.invoke(ctx)
             ?: (if (vm.thinking) stringResource(R.string.game_thinking) else strings.hint)
 
@@ -396,8 +409,8 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
             }
         }
 
-        // Choice buttons
-        if (!vm.busy) {
+        // Choice buttons (in hosted games: only on the local player's turn)
+        if (!vm.busy && (!vm.hosted || info.playerInTurn == 0)) {
             val phase = info.phase
             val btn1Label: String? = when (phase) {
                 GamePhase.Negotiations -> vm.selectedBid?.let { GameTexts.bidTitle(ctx, it) }
@@ -423,10 +436,10 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
                 Button(
                     onClick = { vm.onButton1() },
                     modifier = Modifier
-                        .offset(x = ux(127.0), y = uy(330.0))
-                        .width(ux(227.0))
+                        .offset(x = ux(152.0), y = uy(330.0))
+                        .width(ux(176.0))
                 ) {
-                    Text(btn1Label)
+                    Text(btn1Label, maxLines = 1)
                 }
             }
             if (btn2Label != null) {
@@ -434,10 +447,10 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
                     onClick = { vm.onButton2() },
                     enabled = btn2Enabled,
                     modifier = Modifier
-                        .offset(x = ux(127.0), y = uy(385.0))
-                        .width(ux(227.0))
+                        .offset(x = ux(152.0), y = uy(385.0))
+                        .width(ux(176.0))
                 ) {
-                    Text(btn2Label)
+                    Text(btn2Label, maxLines = 1)
                 }
             }
         }
@@ -482,8 +495,9 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
             ScoreOverlay(
                 snap = snap,
                 modifier = Modifier
-                    .offset(x = ux(40.0), y = uy(150.0))
-                    .width(ux(400.0)),
+                    .offset(x = ux(25.0), y = uy(100.0))
+                    .width(ux(430.0))
+                    .aspectRatio(480f / 550f),
                 onTap = { vm.onCanvasTap() }
             )
         }
