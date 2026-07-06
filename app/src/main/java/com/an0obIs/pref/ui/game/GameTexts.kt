@@ -27,10 +27,12 @@ object GameTexts {
         return "${bid.contract} ${trumpName(ctx, bid.trump)}"
     }
 
-    /** Port of GameMain.PlayerInfo. */
+    /** Port of GameMain.PlayerInfo; ">" marks the player whose turn it is. */
     fun playerInfo(ctx: Context, info: TableInfo, player: Int): String {
         var res = ""
-        if (player == info.dealer)
+        if (player == info.playerInTurn &&
+            info.phase != GamePhase.NotStarted && info.phase != GamePhase.Ended
+        )
             res += ">"
         res += info.names[player]
         if (info.currentGameType == GameType.Normal || info.currentGameType == GameType.Miser) {
