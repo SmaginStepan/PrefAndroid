@@ -171,6 +171,16 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
             )
         }
 
+        st.scores?.let { snap ->
+            com.an0obIs.pref.ui.game.ScoreOverlay(
+                snap = snap,
+                modifier = Modifier
+                    .offset(x = ux(40.0), y = uy(150.0))
+                    .width(ux(400.0)),
+                onTap = { if (ask?.kind == "confirm") act(GameMsg.Act(confirm = true)) }
+            )
+        }
+
         if (strings.result.isNotEmpty()) {
             Text(
                 text = strings.result, color = Color.White, fontSize = 15.sp,

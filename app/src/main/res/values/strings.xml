@@ -239,4 +239,6 @@
     <string name="mp_err_generic">Something went wrong (%s).</string>
     <string name="mp_bad_move">That move is not allowed.</string>
     <string name="mp_game_over">The game is over!</string>
+    <string name="score_title_fmt">Score (to %d)</string>
+    <string name="score_whists">WHISTS</string>
 </resources>

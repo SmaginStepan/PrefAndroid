@@ -32,6 +32,16 @@ data class Ask(
     val allowed: List<Card>? = null
 )
 
+/** Compact score standing shown between deals (already rotated per viewer). */
+@Serializable
+data class ScoreSnap(
+    val names: List<String>,
+    val pulya: List<Int>,
+    val gora: List<Int>,
+    val whists: List<Int>,
+    val limit: Int
+)
+
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
 @JsonClassDiscriminator("t")
@@ -46,7 +56,8 @@ sealed interface GameMsg {
         val yourTurn: Boolean,
         val ask: Ask? = null,
         val badMove: Boolean = false,
-        val ended: Boolean = false
+        val ended: Boolean = false,
+        val scores: ScoreSnap? = null
     ) : GameMsg
 
     /** A guest's answer to an Ask. Exactly one field is set. */

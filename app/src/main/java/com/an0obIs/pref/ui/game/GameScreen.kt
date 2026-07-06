@@ -477,6 +477,17 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
             }
         }
 
+        // Multiplayer: score standing between deals / at game end
+        vm.scoresOverlay?.let { snap ->
+            ScoreOverlay(
+                snap = snap,
+                modifier = Modifier
+                    .offset(x = ux(40.0), y = uy(150.0))
+                    .width(ux(400.0)),
+                onTap = { vm.onCanvasTap() }
+            )
+        }
+
         // Past tricks popup
         if (vm.showTricks) {
             Column(

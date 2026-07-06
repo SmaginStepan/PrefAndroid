@@ -14,6 +14,8 @@ import com.an0obIs.pref.ai.AI
 import com.an0obIs.pref.ai.AIInfo
 import com.an0obIs.pref.mp.GameMsg
 import com.an0obIs.pref.mp.HostGameSession
+import com.an0obIs.pref.mp.RemoteViews
+import com.an0obIs.pref.mp.ScoreSnap
 import com.an0obIs.pref.mp.SeatKind
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -114,6 +116,8 @@ class GameViewModel : ViewModel() {
 
     // hosted multiplayer: the session (not this VM) drives the loop
     var hosted = false
+        private set
+    var scoresOverlay by mutableStateOf<ScoreSnap?>(null)
         private set
     private var session: HostGameSession? = null
     private val mpMutex = Mutex()
@@ -220,6 +224,9 @@ class GameViewModel : ViewModel() {
         field = TableLayout.computeField(game, cardsToDiscard.toList(), null)
         pinnedOverlays.clear()
         info = buildTableInfo()
+        scoresOverlay = if (hosted && (game.phase == GamePhase.ScoreView || game.phase == GamePhase.Ended))
+            RemoteViews.buildScoresFor(game, 0)
+        else null
     }
 
     fun gameNext() {

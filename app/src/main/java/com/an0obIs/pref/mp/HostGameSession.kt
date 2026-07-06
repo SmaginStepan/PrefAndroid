@@ -70,6 +70,7 @@ class HostGameSession(
     /** Send every REMOTE seat its personal view of the current state. */
     private fun broadcast(badMoveFor: Int = -1) {
         val ended = game.phase == GamePhase.Ended
+        val withScores = ended || game.phase == GamePhase.ScoreView
         for (seat in seats.indices) {
             if (seats[seat] != SeatKind.REMOTE) continue
             val yourTurn = !ended && game.playerInTurn == seat
@@ -81,7 +82,8 @@ class HostGameSession(
                     yourTurn = yourTurn,
                     ask = if (yourTurn) RemoteViews.buildAsk(game) else null,
                     badMove = seat == badMoveFor,
-                    ended = ended
+                    ended = ended,
+                    scores = if (withScores) RemoteViews.buildScoresFor(game, seat) else null
                 )
             )
         }
