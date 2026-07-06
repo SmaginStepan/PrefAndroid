@@ -215,6 +215,7 @@
     <string name="mp_players_fmt">%1$d/%2$d игроков</string>
     <string name="mp_host_fmt">ведущий: %s</string>
     <string name="mp_room_name">Название игры</string>
+    <string name="mp_your_name">Ваше имя</string>
     <string name="mp_seats">Игроков:</string>
     <string name="mp_password_optional">Пароль (необязательно)</string>
     <string name="mp_password_title">Игра защищена паролем</string>

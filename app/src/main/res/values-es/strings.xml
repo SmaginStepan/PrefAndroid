@@ -215,6 +215,7 @@
     <string name="mp_players_fmt">%1$d/%2$d jugadores</string>
     <string name="mp_host_fmt">anfitrión: %s</string>
     <string name="mp_room_name">Nombre de la partida</string>
+    <string name="mp_your_name">Tu nombre</string>
     <string name="mp_seats">Jugadores:</string>
     <string name="mp_password_optional">Contraseña (opcional)</string>
     <string name="mp_password_title">Esta partida está protegida</string>

@@ -88,7 +88,7 @@ fun MultiplayerScreen(onBack: () -> Unit) {
 @Composable
 private fun LobbyView(vm: LobbyViewModel) {
     var showCreate by remember { mutableStateOf(false) }
-    var passwordFor by remember { mutableStateOf<RoomInfo?>(null) }
+    var joinFor by remember { mutableStateOf<RoomInfo?>(null) }
 
     Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
         Text(
@@ -129,10 +129,7 @@ private fun LobbyView(vm: LobbyViewModel) {
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable(enabled = r.phase == "open") {
-                                        if (r.hasPassword) passwordFor = r
-                                        else vm.join(r.id, null)
-                                    }
+                                    .clickable(enabled = r.phase == "open") { joinFor = r }
                                     .padding(vertical = 10.dp)
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -164,36 +161,51 @@ private fun LobbyView(vm: LobbyViewModel) {
 
     if (showCreate) {
         CreateRoomDialog(
-            defaultName = vm.myName,
+            defaultPlayerName = vm.myName,
             onDismiss = { showCreate = false },
-            onCreate = { name, seats, password, preset, limit ->
-                vm.createRoom(name, seats, password, preset, limit)
+            onCreate = { playerName, name, seats, password, preset, limit ->
+                vm.createRoom(playerName, name, seats, password, preset, limit)
                 showCreate = false
             }
         )
     }
 
-    passwordFor?.let { r ->
+    joinFor?.let { r ->
+        var playerName by remember(r.id) { mutableStateOf(vm.myName) }
         var pwd by remember(r.id) { mutableStateOf("") }
         AlertDialog(
-            onDismissRequest = { passwordFor = null },
-            title = { Text(stringResource(R.string.mp_password_title), fontSize = 17.sp) },
+            onDismissRequest = { joinFor = null },
+            title = { Text(r.name, fontSize = 17.sp) },
             text = {
-                OutlinedTextField(
-                    value = pwd,
-                    onValueChange = { pwd = it },
-                    singleLine = true,
-                    label = { Text(stringResource(R.string.mp_password_label)) }
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = playerName,
+                        onValueChange = { playerName = it.take(24) },
+                        singleLine = true,
+                        label = { Text(stringResource(R.string.mp_your_name)) }
+                    )
+                    if (r.hasPassword) {
+                        Text(stringResource(R.string.mp_password_title), fontSize = 14.sp)
+                        OutlinedTextField(
+                            value = pwd,
+                            onValueChange = { pwd = it },
+                            singleLine = true,
+                            label = { Text(stringResource(R.string.mp_password_label)) }
+                        )
+                    }
+                }
             },
             confirmButton = {
-                Button(onClick = {
-                    vm.join(r.id, pwd)
-                    passwordFor = null
-                }) { Text(stringResource(R.string.mp_join)) }
+                Button(
+                    enabled = playerName.isNotBlank(),
+                    onClick = {
+                        vm.join(r.id, pwd, playerName)
+                        joinFor = null
+                    }
+                ) { Text(stringResource(R.string.mp_join)) }
             },
             dismissButton = {
-                TextButton(onClick = { passwordFor = null }) { Text(stringResource(R.string.close)) }
+                TextButton(onClick = { joinFor = null }) { Text(stringResource(R.string.close)) }
             }
         )
     }
@@ -201,11 +213,12 @@ private fun LobbyView(vm: LobbyViewModel) {
 
 @Composable
 private fun CreateRoomDialog(
-    defaultName: String,
+    defaultPlayerName: String,
     onDismiss: () -> Unit,
-    onCreate: (name: String, seats: Int, password: String?, preset: RulesGameType, limit: Int) -> Unit
+    onCreate: (playerName: String, name: String, seats: Int, password: String?, preset: RulesGameType, limit: Int) -> Unit
 ) {
-    var name by remember { mutableStateOf(defaultName) }
+    var playerName by remember { mutableStateOf(defaultPlayerName) }
+    var name by remember { mutableStateOf(defaultPlayerName) }
     var seats by remember { mutableIntStateOf(3) }
     var password by remember { mutableStateOf("") }
     var preset by remember { mutableStateOf(RulesGameType.Sochy) }
@@ -216,6 +229,12 @@ private fun CreateRoomDialog(
         title = { Text(stringResource(R.string.mp_create), fontSize = 18.sp) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = playerName,
+                    onValueChange = { playerName = it.take(24) },
+                    singleLine = true,
+                    label = { Text(stringResource(R.string.mp_your_name)) }
+                )
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it.take(32) },
@@ -271,9 +290,9 @@ private fun CreateRoomDialog(
         },
         confirmButton = {
             Button(
-                enabled = name.isNotBlank(),
+                enabled = name.isNotBlank() && playerName.isNotBlank(),
                 onClick = {
-                    onCreate(name.trim(), seats, password, preset, limitText.toIntOrNull() ?: 10)
+                    onCreate(playerName.trim(), name.trim(), seats, password, preset, limitText.toIntOrNull() ?: 10)
                 }
             ) { Text(stringResource(R.string.mp_create)) }
         },
@@ -340,24 +359,30 @@ private fun RoomView(vm: LobbyViewModel, room: RoomInfo, onBack: () -> Unit) {
             )
         }
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(top = 16.dp)
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
         ) {
             if (vm.isHost && !vm.started) {
                 val full = room.seats.count { it != null } == room.maxSeats &&
                         room.seats.all { it == null || it.connected }
-                OutlinedButton(
-                    onClick = { vm.addBot() },
-                    enabled = room.seats.count { it != null } < room.maxSeats
-                ) { Text(stringResource(R.string.mp_add_bot)) }
-                Button(onClick = { vm.startGame() }, enabled = full) {
-                    Text(stringResource(R.string.mp_start))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = { vm.addBot() },
+                        enabled = room.seats.count { it != null } < room.maxSeats,
+                        modifier = Modifier.weight(1f)
+                    ) { Text(stringResource(R.string.mp_add_bot), maxLines = 1) }
+                    Button(
+                        onClick = { vm.startGame() },
+                        enabled = full,
+                        modifier = Modifier.weight(1f)
+                    ) { Text(stringResource(R.string.mp_start), maxLines = 1) }
                 }
             }
-            OutlinedButton(onClick = { vm.leave() }) {
-                Text(stringResource(R.string.mp_leave))
-            }
+            OutlinedButton(
+                onClick = { vm.leave() },
+                modifier = Modifier.fillMaxWidth()
+            ) { Text(stringResource(R.string.mp_leave)) }
         }
     }
 }

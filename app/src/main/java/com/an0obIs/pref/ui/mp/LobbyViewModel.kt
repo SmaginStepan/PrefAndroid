@@ -109,17 +109,29 @@ class LobbyViewModel : ViewModel() {
     val isHost: Boolean
         get() = mySeat == 0
 
+    /** Persist a changed nickname and re-announce it before create/join. */
+    private fun ensureName(name: String) {
+        val n = name.trim().take(24)
+        if (n.isEmpty() || n == myName) return
+        val settings = AppSettings()
+        settings.playerName = n
+        myName = n
+        client.send(ClientMsg.Hello(settings.playerId, n))
+    }
+
     fun refresh() {
         if (conn == ConnState.Connected) client.send(ClientMsg.ListRooms)
     }
 
     fun createRoom(
+        playerName: String,
         roomName: String,
         maxSeats: Int,
         password: String?,
         preset: RulesGameType,
         limit: Int
     ) {
+        ensureName(playerName)
         val rules = GameRules().also {
             it.gameType = preset
             when (preset) {
@@ -158,7 +170,8 @@ class LobbyViewModel : ViewModel() {
         )
     }
 
-    fun join(roomId: String, password: String?) {
+    fun join(roomId: String, password: String?, playerName: String) {
+        ensureName(playerName)
         client.send(ClientMsg.Join(roomId, password?.takeIf { it.isNotBlank() }))
     }
 
