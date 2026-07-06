@@ -240,6 +240,7 @@
     <string name="mp_err_generic">Что-то пошло не так (%s).</string>
     <string name="mp_bad_move">Так ходить нельзя.</string>
     <string name="mp_waiting_for">Ждём: %s…</string>
+    <string name="dealer_badge">сдаёт</string>
     <string name="mp_game_over">Партия окончена!</string>
     <string name="score_title_fmt">Счёт (до %d)</string>
     <string name="score_whists">ВИСТЫ</string>

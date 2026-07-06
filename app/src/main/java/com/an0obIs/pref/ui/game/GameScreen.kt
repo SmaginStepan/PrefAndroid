@@ -173,6 +173,34 @@ private fun buildTableStringsInner(ctx: Context, info: TableInfo): TableStrings 
     return TableStrings(p0, p1, p2, gameInfo, hint, result)
 }
 
+/** Small badge marking the dealing player, anchored to their table position. */
+@Composable
+internal fun DealerBadge(dealer: Int, ux: (Double) -> Dp, uy: (Double) -> Dp) {
+    // seat -> (x, y, width, alignment); seat 3 = top center (future 4-player)
+    val (x, y, w, align) = when (dealer) {
+        0 -> listOf(16.0, 610.0, 150.0, Alignment.CenterStart)
+        1 -> listOf(20.0, 28.0, 150.0, Alignment.CenterStart)
+        2 -> listOf(312.0, 28.0, 150.0, Alignment.CenterEnd)
+        else -> listOf(165.0, 28.0, 150.0, Alignment.Center)
+    }
+    Box(
+        modifier = Modifier
+            .offset(x = ux(x as Double), y = uy(y as Double))
+            .width(ux(w as Double)),
+        contentAlignment = align as Alignment
+    ) {
+        Text(
+            text = stringResource(R.string.dealer_badge),
+            fontSize = 11.sp,
+            color = Color(0xFFD4AF37),
+            maxLines = 1,
+            modifier = Modifier
+                .background(Color(0x66000000), RoundedCornerShape(6.dp))
+                .padding(horizontal = 6.dp, vertical = 1.dp)
+        )
+    }
+}
+
 /** Everything the table needs to run as a multiplayer host. */
 class HostedConfig(
     val names: List<String>,
@@ -315,6 +343,11 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
                 .offset(x = ux(177.0), y = uy(684.0))
                 .width(ux(285.0))
         )
+
+        // Dealer marker
+        if (info.names[info.dealer].isNotEmpty()) {
+            DealerBadge(info.dealer, ::ux, ::uy)
+        }
 
         // Hint text (bottom-left "advice bubble" area)
         if (hintText.isNotEmpty()) {

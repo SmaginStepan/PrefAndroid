@@ -240,6 +240,7 @@
     <string name="mp_err_generic">Algo salió mal (%s).</string>
     <string name="mp_bad_move">Esa jugada no está permitida.</string>
     <string name="mp_waiting_for">Esperando a %s…</string>
+    <string name="dealer_badge">reparte</string>
     <string name="mp_game_over">¡La partida ha terminado!</string>
     <string name="score_title_fmt">Puntuación (hasta %d)</string>
     <string name="score_whists">WHISTS</string>
