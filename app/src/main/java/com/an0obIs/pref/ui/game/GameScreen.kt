@@ -399,8 +399,8 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
                     .offset(x = ux(139.0), y = uy(23.0))
                     .width(ux(203.0))
                     .height(uy(300.0))
-                    .background(Color(0x2CD3D3D3))
-                    .border(1.dp, Color.White)
+                    .background(Color(0x66123B16))
+                    .border(1.dp, Color(0x662E7D32))
             ) {
                 items(reversed) { bid ->
                     val selected = vm.selectedBid === bid
