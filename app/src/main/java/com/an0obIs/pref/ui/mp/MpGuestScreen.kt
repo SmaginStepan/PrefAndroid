@@ -202,8 +202,8 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
             val choices = ask.bids.filter { !it.pas }
             LazyColumn(
                 modifier = Modifier
-                    .offset(x = ux(139.0), y = uy(23.0))
-                    .width(ux(203.0)).height(uy(300.0))
+                    .offset(x = ux(139.0), y = uy(50.0))
+                    .width(ux(203.0)).height(uy(273.0))
                     .background(Color(0x66123B16))
                     .border(1.dp, Color(0x662E7D32))
             ) {
