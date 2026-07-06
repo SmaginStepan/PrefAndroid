@@ -178,7 +178,7 @@ private fun buildTableStringsInner(ctx: Context, info: TableInfo): TableStrings 
 internal fun DealerBadge(dealer: Int, ux: (Double) -> Dp, uy: (Double) -> Dp) {
     // seat -> (x, y, width, alignment); seat 3 = top center (future 4-player)
     val (x, y, w, align) = when (dealer) {
-        0 -> listOf(16.0, 668.0, 150.0, Alignment.CenterStart)
+        0 -> listOf(312.0, 677.0, 150.0, Alignment.CenterEnd) // right, under own name
         1 -> listOf(20.0, 23.0, 150.0, Alignment.CenterStart)
         2 -> listOf(312.0, 23.0, 150.0, Alignment.CenterEnd)
         else -> listOf(165.0, 23.0, 150.0, Alignment.Center)
@@ -190,7 +190,7 @@ internal fun DealerBadge(dealer: Int, ux: (Double) -> Dp, uy: (Double) -> Dp) {
         contentAlignment = align as Alignment
     ) {
         Text(
-            text = stringResource(R.string.dealer_badge),
+            text = "(" + stringResource(R.string.dealer_badge) + ")",
             fontSize = 10.sp,
             color = Color.White.copy(alpha = 0.85f),
             maxLines = 1
@@ -337,7 +337,7 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
             fontSize = 13.sp,
             textAlign = TextAlign.Right,
             modifier = Modifier
-                .offset(x = ux(177.0), y = uy(684.0))
+                .offset(x = ux(177.0), y = uy(694.0))
                 .width(ux(285.0))
         )
 

@@ -161,7 +161,7 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
         Text(strings.p0, color = Color.White, fontSize = 13.sp, textAlign = TextAlign.Right,
             modifier = Modifier.offset(x = ux(177.0), y = uy(664.0)).width(ux(285.0)))
         Text(strings.gameInfo, color = Color.White, fontSize = 13.sp, textAlign = TextAlign.Right,
-            modifier = Modifier.offset(x = ux(177.0), y = uy(684.0)).width(ux(285.0)))
+            modifier = Modifier.offset(x = ux(177.0), y = uy(694.0)).width(ux(285.0)))
 
         if (st.info.names[st.info.dealer].isNotEmpty()) {
             com.an0obIs.pref.ui.game.DealerBadge(st.info.dealer, ::ux, ::uy)
