@@ -237,4 +237,6 @@
     <string name="mp_err_room_full">The game is full.</string>
     <string name="mp_err_playing">That game has already started.</string>
     <string name="mp_err_generic">Something went wrong (%s).</string>
+    <string name="mp_bad_move">That move is not allowed.</string>
+    <string name="mp_game_over">The game is over!</string>
 </resources>

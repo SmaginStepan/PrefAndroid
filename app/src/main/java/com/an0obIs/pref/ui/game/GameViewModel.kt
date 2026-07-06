@@ -12,6 +12,11 @@ import com.an0obIs.pref.PrefApp
 import com.an0obIs.pref.R
 import com.an0obIs.pref.ai.AI
 import com.an0obIs.pref.ai.AIInfo
+import com.an0obIs.pref.mp.GameMsg
+import com.an0obIs.pref.mp.HostGameSession
+import com.an0obIs.pref.mp.SeatKind
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import com.an0obIs.pref.model.Calculation
 import com.an0obIs.pref.model.Card
 import com.an0obIs.pref.model.Game
@@ -107,6 +112,73 @@ class GameViewModel : ViewModel() {
     private var started = false
     private var loopRunning = false
 
+    // hosted multiplayer: the session (not this VM) drives the loop
+    var hosted = false
+        private set
+    private var session: HostGameSession? = null
+    private val mpMutex = Mutex()
+
+    /** Host side of a multiplayer game. Seat 0 is the local player. */
+    fun startHosted(
+        names: List<String>,
+        seatKinds: List<SeatKind>,
+        sendToSeat: (Int, GameMsg.State) -> Unit
+    ) {
+        if (started) return
+        started = true
+        hosted = true
+        game = Game.create()
+        for (i in names.indices.take(3))
+            game.calc.scores[i].name = names[i]
+        val s = HostGameSession(
+            game = game,
+            seats = seatKinds,
+            sendToSeat = sendToSeat,
+            onLocalTurn = {
+                viewModelScope.launch {
+                    buildMenu()
+                    refresh()
+                }
+            }
+        )
+        session = s
+        viewModelScope.launch {
+            busy = true
+            thinking = true
+            withContext(Dispatchers.Default) {
+                mpMutex.withLock {
+                    try {
+                        s.start()
+                    } catch (e: Exception) {
+                        android.util.Log.e("Pref", "hosted start error", e)
+                    }
+                }
+            }
+            thinking = false
+            busy = false
+            buildMenu()
+            refresh()
+        }
+    }
+
+    /** A remote player's action arrived over the relay. */
+    fun onRemoteAct(seat: Int, act: GameMsg.Act) {
+        val s = session ?: return
+        viewModelScope.launch {
+            withContext(Dispatchers.Default) {
+                mpMutex.withLock {
+                    try {
+                        s.onRemoteAct(seat, act)
+                    } catch (e: Exception) {
+                        android.util.Log.e("Pref", "remote act error", e)
+                    }
+                }
+            }
+            buildMenu()
+            refresh()
+        }
+    }
+
     fun start(app: PrefApp, ai1Name: String, ai2Name: String) {
         this.app = app
         if (!started) {
@@ -152,6 +224,32 @@ class GameViewModel : ViewModel() {
 
     fun gameNext() {
         if (loopRunning) return
+        val s = session
+        if (hosted && s != null) {
+            // hosted: the local action was already applied; the session runs
+            // next() + bots + remote broadcasting
+            viewModelScope.launch {
+                loopRunning = true
+                busy = true
+                thinking = true
+                transientHint = null
+                withContext(Dispatchers.Default) {
+                    mpMutex.withLock {
+                        try {
+                            s.onLocalActed()
+                        } catch (e: Exception) {
+                            android.util.Log.e("Pref", "hosted loop error (phase=${game.phase})", e)
+                        }
+                    }
+                }
+                thinking = false
+                busy = false
+                buildMenu()
+                refresh()
+                loopRunning = false
+            }
+            return
+        }
         viewModelScope.launch {
             loopRunning = true
             busy = true
@@ -196,6 +294,9 @@ class GameViewModel : ViewModel() {
             loopRunning = false
         }
     }
+
+    val isGameEnded: Boolean
+        get() = game.phase == GamePhase.Ended
 
     private suspend fun processAnimations() {
         while (true) {
@@ -314,6 +415,13 @@ class GameViewModel : ViewModel() {
             GamePhase.EndPlay -> {
                 game.endConfirm()
                 gameNext()
+            }
+            GamePhase.ScoreView -> {
+                // hosted games treat the score view as a confirm turn
+                if (hosted) {
+                    game.scoreClose()
+                    gameNext()
+                }
             }
             else -> {}
         }

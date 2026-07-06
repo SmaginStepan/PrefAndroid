@@ -68,10 +68,13 @@ fun MultiplayerScreen(onBack: () -> Unit) {
     LaunchedEffect(Unit) { vm.start() }
 
     val room = vm.currentRoom
-    if (room == null) {
-        LobbyView(vm)
-    } else {
-        RoomView(vm, room, onBack)
+    when {
+        room == null -> LobbyView(vm)
+        // live game (3-player only until the 4p engine mode lands;
+        // started 4-seat rooms keep the RoomView with its stub note)
+        vm.started && room.maxSeats == 3 ->
+            if (vm.isHost) MpHostScreen(vm, room) else MpGuestScreen(vm)
+        else -> RoomView(vm, room, onBack)
     }
 
     vm.notice?.let { code ->
@@ -83,6 +86,49 @@ fun MultiplayerScreen(onBack: () -> Unit) {
             }
         )
     }
+}
+
+/** The host runs the real game table on top of HostGameSession. */
+@Composable
+private fun MpHostScreen(lobbyVm: LobbyViewModel, room: RoomInfo) {
+    val app = androidx.compose.ui.platform.LocalContext.current.applicationContext
+            as com.an0obIs.pref.PrefApp
+    val config = remember(room.id) {
+        val names = (0 until 3).map { i -> room.seats.getOrNull(i)?.name ?: "?" }
+        val kinds = (0 until 3).map { i ->
+            val seat = room.seats.getOrNull(i)
+            when {
+                i == 0 -> com.an0obIs.pref.mp.SeatKind.LOCAL
+                seat?.kind == "bot" -> com.an0obIs.pref.mp.SeatKind.BOT
+                else -> com.an0obIs.pref.mp.SeatKind.REMOTE
+            }
+        }
+        com.an0obIs.pref.ui.game.HostedConfig(
+            names = names,
+            seatKinds = kinds,
+            sendToSeat = { seat, state ->
+                lobbyVm.sendGameToSeat(
+                    seat,
+                    com.an0obIs.pref.mp.gameJson.encodeToJsonElement(
+                        com.an0obIs.pref.mp.GameMsg.serializer(), state
+                    )
+                )
+            },
+            acts = kotlinx.coroutines.flow.flow {
+                lobbyVm.playerActs.collect { (seat, el) ->
+                    try {
+                        val msg = com.an0obIs.pref.mp.gameJson.decodeFromJsonElement(
+                            com.an0obIs.pref.mp.GameMsg.serializer(), el
+                        )
+                        if (msg is com.an0obIs.pref.mp.GameMsg.Act) emit(seat to msg)
+                    } catch (e: Exception) {
+                        android.util.Log.w("PrefNet", "bad act payload", e)
+                    }
+                }
+            }
+        )
+    }
+    com.an0obIs.pref.ui.game.GameScreen(app = app, onShowScore = {}, hostedConfig = config)
 }
 
 @Composable

@@ -237,4 +237,6 @@
     <string name="mp_err_room_full">В игре нет мест.</string>
     <string name="mp_err_playing">Эта игра уже началась.</string>
     <string name="mp_err_generic">Что-то пошло не так (%s).</string>
+    <string name="mp_bad_move">Так ходить нельзя.</string>
+    <string name="mp_game_over">Партия окончена!</string>
 </resources>

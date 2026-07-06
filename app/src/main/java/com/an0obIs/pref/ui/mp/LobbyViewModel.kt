@@ -20,7 +20,9 @@ import com.an0obIs.pref.net.LobbyClient
 import com.an0obIs.pref.net.RoomInfo
 import com.an0obIs.pref.net.ServerMsg
 import com.an0obIs.pref.net.protocolJson
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
@@ -50,6 +52,22 @@ class LobbyViewModel : ViewModel() {
 
     var myName by mutableStateOf("")
         private set
+
+    /** Relayed game payloads: host receives (fromSeat, data); guests receive data. */
+    val playerActs = MutableSharedFlow<Pair<Int, JsonElement>>(
+        extraBufferCapacity = 64, onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    val hostStates = MutableSharedFlow<JsonElement>(
+        extraBufferCapacity = 64, onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+
+    fun sendGameToSeat(seat: Int, data: JsonElement) {
+        client.send(ClientMsg.Send(toSeat = seat, data = data))
+    }
+
+    fun sendGameToHost(data: JsonElement) {
+        client.send(ClientMsg.Send(data = data))
+    }
 
     private var startedOnce = false
 
@@ -100,9 +118,8 @@ class LobbyViewModel : ViewModel() {
                 currentRoom = null; mySeat = null; started = false; notice = "room_closed"
             }
             is ServerMsg.Error -> notice = msg.code
-            is ServerMsg.HostMsg, is ServerMsg.PlayerMsg -> {
-                // game-phase messages: handled in the next milestone
-            }
+            is ServerMsg.HostMsg -> hostStates.tryEmit(msg.data)
+            is ServerMsg.PlayerMsg -> playerActs.tryEmit(msg.fromSeat to msg.data)
         }
     }
 

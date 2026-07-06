@@ -237,4 +237,6 @@
     <string name="mp_err_room_full">La partida está llena.</string>
     <string name="mp_err_playing">Esa partida ya ha empezado.</string>
     <string name="mp_err_generic">Algo salió mal (%s).</string>
+    <string name="mp_bad_move">Esa jugada no está permitida.</string>
+    <string name="mp_game_over">¡La partida ha terminado!</string>
 </resources>

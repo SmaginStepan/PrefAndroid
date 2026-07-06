@@ -76,7 +76,7 @@ class CardImages(private val ctx: Context) {
     }
 }
 
-private data class TableStrings(
+internal data class TableStrings(
     val p0: String = "",
     val p1: String = "",
     val p2: String = "",
@@ -85,8 +85,8 @@ private data class TableStrings(
     val result: String = ""
 )
 
-/** Port of DrawField's text section. */
-private fun buildTableStrings(ctx: Context, info: TableInfo): TableStrings {
+/** Port of DrawField's text section. Shared with the multiplayer guest screen. */
+internal fun buildTableStrings(ctx: Context, info: TableInfo): TableStrings {
     var p0 = GameTexts.playerInfo(ctx, info, 0)
     var p1 = GameTexts.playerInfo(ctx, info, 1)
     var p2 = GameTexts.playerInfo(ctx, info, 2)
@@ -154,13 +154,24 @@ private fun buildTableStrings(ctx: Context, info: TableInfo): TableStrings {
             info.gameResult?.let { result = GameTexts.resultText(ctx, it, info.names) }
             hint = ctx.getString(R.string.game_hint_end)
         }
+        GamePhase.ScoreView -> {
+            hint = ctx.getString(R.string.game_hint_end)
+        }
         else -> {}
     }
     return TableStrings(p0, p1, p2, gameInfo, hint, result)
 }
 
+/** Everything the table needs to run as a multiplayer host. */
+class HostedConfig(
+    val names: List<String>,
+    val seatKinds: List<com.an0obIs.pref.mp.SeatKind>,
+    val sendToSeat: (Int, com.an0obIs.pref.mp.GameMsg.State) -> Unit,
+    val acts: kotlinx.coroutines.flow.Flow<Pair<Int, com.an0obIs.pref.mp.GameMsg.Act>>
+)
+
 @Composable
-fun GameScreen(app: PrefApp, onShowScore: () -> Unit) {
+fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig? = null) {
     val vm: GameViewModel = viewModel()
     val ctx = LocalContext.current
     val images = remember { CardImages(ctx.applicationContext) }
@@ -169,7 +180,16 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit) {
     val ai2 = stringResource(R.string.ai_name_2)
     LaunchedEffect(Unit) {
         vm.onShowScore = onShowScore
-        vm.start(app, ai1, ai2)
+        if (hostedConfig != null) {
+            vm.startHosted(hostedConfig.names, hostedConfig.seatKinds, hostedConfig.sendToSeat)
+        } else {
+            vm.start(app, ai1, ai2)
+        }
+    }
+    if (hostedConfig != null) {
+        LaunchedEffect(Unit) {
+            hostedConfig.acts.collect { (seat, act) -> vm.onRemoteAct(seat, act) }
+        }
     }
 
     BoxWithConstraints(
