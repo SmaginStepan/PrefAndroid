@@ -31,6 +31,18 @@ class HostGameSessionTest {
     }
 
     @Test
+    fun hostSeesOwnHandInHostedGame() {
+        val game = Game.create()
+        game.externalDriver = true
+        game.next() // deals; waits for seat input
+        val field = com.an0obIs.pref.ui.game.TableLayout.computeField(game)
+        val ownFaceUp = field.count { it.hand == 0 && !it.isInPlay && !it.isPrikup && it.card != null }
+        val othersFaceDown = field.count { it.hand in 1..2 && !it.isInPlay && !it.isPrikup && it.card == null }
+        assertEquals("host sees all 10 own cards", 10, ownFaceUp)
+        assertEquals("opponents stay face-down", 20, othersFaceDown)
+    }
+
+    @Test
     fun threeRemotePlayersFinishGamesWithoutLeaks() {
         repeat(3) { round ->
             val game = Game.create()

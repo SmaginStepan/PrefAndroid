@@ -134,7 +134,11 @@ object TableLayout {
                 }
                 res.addAll(handPlacements(list, hand, special = true, hidden = false))
             } else {
-                res.addAll(handPlacements(deal.hands[hand].cards, hand, special = false, hidden = !deal.hands[hand].isVisible))
+                // seat 0 is always the local viewer here (single-player human or
+                // multiplayer host); in hosted games hands[0].isVisible is false
+                // so guests don't see it, but the host's own screen must
+                val faceUp = hand == 0 || deal.hands[hand].isVisible
+                res.addAll(handPlacements(deal.hands[hand].cards, hand, special = false, hidden = !faceUp))
             }
         }
 
