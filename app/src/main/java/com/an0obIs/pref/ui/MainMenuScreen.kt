@@ -10,9 +10,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.an0obIs.pref.R
@@ -49,12 +55,28 @@ fun MainMenuScreen(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp, vertical = 16.dp)
     ) {
+        var titleSize by remember { mutableStateOf(56.sp) }
         Text(
             text = stringResource(R.string.app_name),
-            fontSize = 56.sp,
+            fontSize = titleSize,
             fontFamily = FontFamily.Serif,
             color = AccentGold,
-            modifier = Modifier.padding(bottom = 24.dp)
+            maxLines = 1,
+            softWrap = false,
+            onTextLayout = { if (it.didOverflowWidth) titleSize *= 0.92f },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Text(
+            text = stringResource(R.string.menu_subtitle),
+            fontSize = 22.sp,
+            fontFamily = FontFamily.Serif,
+            fontStyle = FontStyle.Italic,
+            letterSpacing = 6.sp,
+            color = AccentGold.copy(alpha = 0.75f),
+            textAlign = TextAlign.End,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 0.dp, bottom = 24.dp)
         )
         MenuItem(stringResource(R.string.menu_new_game), stringResource(R.string.menu_new_game_sub), onNewGame)
         if (hasSavedGame) {

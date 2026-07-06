@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Preferans</string>
+    <string name="menu_subtitle">master</string>
 
     <!-- Main menu -->
     <string name="menu_new_game">Nueva partida</string>

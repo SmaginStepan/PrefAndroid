@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Преферанс</string>
+    <string name="menu_subtitle">мастер</string>
 
     <!-- Main menu -->
     <string name="menu_new_game">Новая игра</string>
