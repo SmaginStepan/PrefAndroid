@@ -67,17 +67,25 @@ class HostGameSession(
         broadcast()
     }
 
+    // Seats that already confirmed the trick being shown in EndTurn: the
+    // engine keeps it in deal.inPlay until everyone confirmed, but a player
+    // who tapped through shouldn't see it come back.
+    private val trickConfirmed = mutableSetOf<Int>()
+
     /** Send every REMOTE seat its personal view of the current state. */
     private fun broadcast(badMoveFor: Int = -1) {
+        if (game.phase != GamePhase.EndTurn) trickConfirmed.clear()
         val ended = game.phase == GamePhase.Ended
         val withScores = ended || game.phase == GamePhase.ScoreView
         for (seat in seats.indices) {
             if (seats[seat] != SeatKind.REMOTE) continue
             val yourTurn = !ended && game.playerInTurn == seat
+            val fieldFor = RemoteViews.buildFieldFor(game, seat)
+                .let { f -> if (seat in trickConfirmed) f.filter { !it.isInPlay } else f }
             sendToSeat(
                 seat,
                 GameMsg.State(
-                    field = RemoteViews.buildFieldFor(game, seat),
+                    field = fieldFor,
                     info = RemoteViews.buildTableInfoFor(game, seat),
                     yourTurn = yourTurn,
                     ask = if (yourTurn) RemoteViews.buildAsk(game) else null,
@@ -134,6 +142,7 @@ class HostGameSession(
             }
             GamePhase.EndTurn -> {
                 if (act.confirm != true) return
+                trickConfirmed.add(seat)
                 game.turnClose()
             }
             GamePhase.EndPlay -> {

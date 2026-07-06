@@ -218,10 +218,17 @@ class GameViewModel : ViewModel() {
         showTricksBtn = game.phase == GamePhase.Playing || game.phase == GamePhase.EndTurn
     )
 
+    // The engine keeps a finished trick in deal.inPlay until every player has
+    // confirmed it; once the local player confirmed, keep it off the table so
+    // it doesn't reappear while the remote players are still looking.
+    private var trickCollected = false
+
     /** Recompute all published render state from the (quiescent) game. */
     private fun refresh() {
         showPrikupHand = null
-        field = TableLayout.computeField(game, cardsToDiscard.toList(), null)
+        if (game.phase != GamePhase.EndTurn) trickCollected = false
+        val f = TableLayout.computeField(game, cardsToDiscard.toList(), null)
+        field = if (trickCollected) f.filter { !it.isInPlay } else f
         pinnedOverlays.clear()
         info = buildTableInfo()
         scoresOverlay = if (hosted && (game.phase == GamePhase.ScoreView || game.phase == GamePhase.Ended))
@@ -457,6 +464,7 @@ class GameViewModel : ViewModel() {
             runAnim()
             trickAnim = null
             busy = false
+            trickCollected = true
             game.turnClose()
             gameNext()
         }
