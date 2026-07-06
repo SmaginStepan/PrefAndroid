@@ -355,22 +355,32 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
             )
         }
 
-        // Say bubbles (bid announcements)
+        // Say bubbles: the bid appears at the bidder's side, then grows while
+        // flying to the center of the table
         vm.say?.let { say ->
-            val scale by animateFloatAsState(
-                targetValue = 2.2f,
-                animationSpec = tween(900),
-                label = "sayScale"
-            )
-            val text = GameTexts.sayText(ctx, say)
-            val x = if (say.player == 2) 260.0 else 30.0
-            Text(
-                text = text,
-                color = Color(0xFFFFB100),
-                fontWeight = FontWeight.Bold,
-                fontSize = (14 * scale).sp,
-                modifier = Modifier.offset(x = ux(x), y = uy(88.0))
-            )
+            val t = vm.animProgress
+            val move = 1f - (1f - t) * (1f - t) // ease-out for the flight
+            val (sx, sy) = when (say.player) {
+                1 -> 80.0 to 95.0    // left player
+                2 -> 400.0 to 95.0   // right player
+                else -> 240.0 to 600.0 // local player (bottom)
+            }
+            val cx = sx + (240.0 - sx) * move
+            val cy = sy + (300.0 - sy) * move
+            Box(
+                modifier = Modifier
+                    .offset(x = ux(cx - 150.0), y = uy(cy))
+                    .width(ux(300.0)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = GameTexts.sayText(ctx, say),
+                    color = Color(0xFFFFB100),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = (15 + 19 * t).sp,
+                    maxLines = 1
+                )
+            }
         }
 
         // Bid menu

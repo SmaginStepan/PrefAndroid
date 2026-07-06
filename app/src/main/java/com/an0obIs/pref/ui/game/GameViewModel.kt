@@ -321,8 +321,10 @@ class GameViewModel : ViewModel() {
                 cardAnim = null
                 pinnedOverlays.add(PlacedCard(card = card, hand = a.player, x = tx, y = ty, isInPlay = true))
             } else {
+                // bid announcement: grows while flying from the bidder to center
                 say = SayEvent(a.player, a.bid, a.text)
-                kotlinx.coroutines.delay(1000)
+                runAnim(800)
+                kotlinx.coroutines.delay(300)
                 say = null
             }
         }
