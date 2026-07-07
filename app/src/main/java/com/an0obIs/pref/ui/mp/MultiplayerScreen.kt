@@ -103,9 +103,13 @@ private fun MpHostScreen(lobbyVm: LobbyViewModel, room: RoomInfo) {
                 else -> com.an0obIs.pref.mp.SeatKind.REMOTE
             }
         }
+        val roomRules = lobbyVm.parseRules(room.rules)
         com.an0obIs.pref.ui.game.HostedConfig(
             names = names,
             seatKinds = kinds,
+            initialCalc = lobbyVm.loadedCalc,
+            rules = roomRules?.gameRules,
+            limit = roomRules?.limit,
             sendToSeat = { seat, state ->
                 lobbyVm.sendGameToSeat(
                     seat,
@@ -405,6 +409,52 @@ private fun RoomView(vm: LobbyViewModel, room: RoomInfo, onBack: () -> Unit) {
             )
         }
 
+        // resume from a saved pulka (3-player games only)
+        var showPicker by remember { mutableStateOf(false) }
+        if (vm.isHost && !vm.started && room.maxSeats == 3) {
+            val loaded = vm.loadedCalc
+            if (loaded == null) {
+                OutlinedButton(
+                    onClick = { showPicker = true },
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                ) { Text(stringResource(R.string.mp_load_scores)) }
+            } else {
+                val df = remember { java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.SHORT) }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(
+                                R.string.mp_scores_loaded_fmt,
+                                df.format(java.util.Date(loaded.created))
+                            ),
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = loaded.scores.joinToString(", ") { "${it.name} ${it.pulya}/${it.gora}" },
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                        )
+                    }
+                    TextButton(onClick = { vm.loadedCalc = null }) {
+                        Text(stringResource(R.string.mp_clear), fontSize = 13.sp)
+                    }
+                }
+            }
+        }
+        if (showPicker) {
+            LoadScoresDialog(
+                onDismiss = { showPicker = false },
+                onLoad = { calc ->
+                    vm.loadedCalc = calc
+                    showPicker = false
+                }
+            )
+        }
+
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
@@ -431,4 +481,60 @@ private fun RoomView(vm: LobbyViewModel, room: RoomInfo, onBack: () -> Unit) {
             ) { Text(stringResource(R.string.mp_leave)) }
         }
     }
+}
+
+/** Pick a saved 3-player pulka (same files the score calculator writes). */
+@Composable
+private fun LoadScoresDialog(
+    onDismiss: () -> Unit,
+    onLoad: (com.an0obIs.pref.model.Calculation) -> Unit
+) {
+    val calcs = remember {
+        com.an0obIs.pref.model.CalcList().also { it.load() }.calcs
+            .filter { it.playersCount == 3 }
+            .mapNotNull { entry ->
+                try {
+                    com.an0obIs.pref.model.Calculation.load(entry.created, entry.playersCount, entry.limit)
+                } catch (e: Exception) {
+                    null
+                }
+            }
+            .filter { !it.isFinished }
+    }
+    val df = remember { java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, java.text.DateFormat.SHORT) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.mp_load_scores), fontSize = 18.sp) },
+        text = {
+            if (calcs.isEmpty()) {
+                Text(stringResource(R.string.mp_no_saved_scores))
+            } else {
+                LazyColumn {
+                    items(calcs, key = { it.created }) { calc ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onLoad(calc) }
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.load_from, df.format(java.util.Date(calc.created))),
+                                fontSize = 16.sp
+                            )
+                            Text(
+                                text = calc.scores.joinToString(", ") { "${it.name} ${it.pulya}/${it.gora}" } +
+                                        "  ·  " + calc.limit,
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) }
+        }
+    )
 }

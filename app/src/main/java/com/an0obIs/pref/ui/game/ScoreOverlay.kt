@@ -8,11 +8,17 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -27,9 +33,15 @@ import com.an0obIs.pref.mp.ScoreSnap
 /**
  * Between-deals score for multiplayer, drawn as the traditional pulka sheet
  * (same 480x550 geometry as CalcSheet3a). Read-only; tap to continue.
+ * [onSave] writes the standing as a regular pulka file (returns success).
  */
 @Composable
-fun ScoreOverlay(snap: ScoreSnap, modifier: Modifier = Modifier, onTap: () -> Unit) {
+fun ScoreOverlay(
+    snap: ScoreSnap,
+    modifier: Modifier = Modifier,
+    onSave: (() -> Boolean)? = null,
+    onTap: () -> Unit
+) {
     // line fractions from CalcSheet3a.DrawLines
     val s1 = 0.15f; val s2 = 0.30f; val s3 = 0.45f
     val e1 = 0.85f; val e2 = 0.70f; val e3 = 0.55f
@@ -113,5 +125,22 @@ fun ScoreOverlay(snap: ScoreSnap, modifier: Modifier = Modifier, onTap: () -> Un
             textAlign = TextAlign.Center,
             modifier = Modifier.offset(y = uy(275.0)).width(ux(480.0))
         )
+
+        if (onSave != null) {
+            var saved by remember(snap) { mutableStateOf(false) }
+            OutlinedButton(
+                onClick = { saved = onSave() },
+                enabled = !saved,
+                modifier = Modifier.align(Alignment.BottomEnd).padding(6.dp)
+            ) {
+                Text(
+                    text = stringResource(
+                        if (saved) R.string.game_score_saved else R.string.game_btn_save_score
+                    ),
+                    fontSize = 12.sp,
+                    color = Color.White
+                )
+            }
+        }
     }
 }

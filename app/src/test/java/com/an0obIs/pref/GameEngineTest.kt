@@ -62,4 +62,26 @@ class GameEngineTest {
         assertTrue(loaded!!.calc.playersCount == 3)
         assertTrue(loaded.deal.hands.sumOf { it.cards.size } + loaded.deal.prikup.cards.size == 32)
     }
+
+    @Test
+    fun pulkaReorderRemapsAllPlayerReferences() {
+        val c = com.an0obIs.pref.model.Calculation(3, 10)
+        c.scores[0].name = "Anna"
+        c.scores[1].name = "Boris"
+        c.scores[2].name = "Clara"
+        c.scores[1].pulya = 5
+        c.scores[1].gora = 12
+        c.scores[1].visty[2] = 40
+        c.dealer = 1
+
+        // Boris hosts the resumed game; Clara joins; a bot takes Anna's column
+        val order = com.an0obIs.pref.model.Calculation.seatOrder(listOf("boris ", "CLARA", "Bot"), c)
+        assertTrue("name match with order fallback", order == listOf(1, 2, 0))
+
+        val r = c.reordered(order)
+        assertTrue(r.scores[0].name == "Boris" && r.scores[0].pulya == 5 && r.scores[0].gora == 12)
+        assertTrue("visty keys remapped (Boris on Clara)", r.scores[0].visty[1] == 40)
+        assertTrue("dealer follows its player", r.dealer == 0)
+        assertTrue("limit and created preserved", r.limit == c.limit && r.created == c.created)
+    }
 }

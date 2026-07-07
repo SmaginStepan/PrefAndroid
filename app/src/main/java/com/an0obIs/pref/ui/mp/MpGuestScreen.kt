@@ -56,11 +56,33 @@ class GuestGameViewModel : ViewModel() {
     var selectedBid by mutableStateOf<Game.Bid?>(null)
     val discardSel = mutableStateListOf<Card>()
 
+    // one pulka file per guest session, overwritten on every save
+    private val calcCreated = System.currentTimeMillis()
+
     fun onState(s: GameMsg.State) {
         val prevKind = state?.ask?.kind
         state = s
         if (s.ask?.kind != prevKind) selectedBid = null
         if (s.ask?.kind != "discard") discardSel.clear()
+    }
+
+    /** Save the host's score snapshot as a regular pulka file (guest view: self = player 0). */
+    fun saveScoreSheet(snap: com.an0obIs.pref.mp.ScoreSnap): Boolean = try {
+        val c = com.an0obIs.pref.model.Calculation(3, snap.limit)
+        c.created = calcCreated
+        c.dealer = snap.dealer
+        for (i in 0..2) {
+            c.scores[i].name = snap.names[i]
+            c.scores[i].pulya = snap.pulya[i]
+            c.scores[i].gora = snap.gora[i]
+            for (j in 0..2)
+                if (i != j) c.scores[i].visty[j] = snap.visty[i][j]
+        }
+        c.save()
+        true
+    } catch (e: Exception) {
+        android.util.Log.e("Pref", "guest score save failed", e)
+        false
     }
 }
 
@@ -183,6 +205,7 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
             com.an0obIs.pref.ui.game.ScoreOverlay(
                 snap = snap,
                 modifier = Modifier.fillMaxSize(),
+                onSave = { vm.saveScoreSheet(snap) },
                 onTap = { if (ask?.kind == "confirm") act(GameMsg.Act(confirm = true)) }
             )
         }

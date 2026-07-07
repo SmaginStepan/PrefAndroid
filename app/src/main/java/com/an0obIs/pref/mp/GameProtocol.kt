@@ -40,7 +40,9 @@ data class ScoreSnap(
     val gora: List<Int>,
     /** visty[i][j] = whists player i has written on player j (diagonal 0). */
     val visty: List<List<Int>>,
-    val limit: Int
+    val limit: Int,
+    /** who deals the next deal (viewer-relative); lets a guest save a resumable pulka */
+    val dealer: Int = 0
 )
 
 @OptIn(ExperimentalSerializationApi::class)

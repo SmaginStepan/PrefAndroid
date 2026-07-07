@@ -202,7 +202,11 @@ class HostedConfig(
     val names: List<String>,
     val seatKinds: List<com.an0obIs.pref.mp.SeatKind>,
     val sendToSeat: (Int, com.an0obIs.pref.mp.GameMsg.State) -> Unit,
-    val acts: kotlinx.coroutines.flow.Flow<Pair<Int, com.an0obIs.pref.mp.GameMsg.Act>>
+    val acts: kotlinx.coroutines.flow.Flow<Pair<Int, com.an0obIs.pref.mp.GameMsg.Act>>,
+    /** resume from a saved pulka (already carries rules, limit and dealer) */
+    val initialCalc: com.an0obIs.pref.model.Calculation? = null,
+    val rules: com.an0obIs.pref.model.GameRules? = null,
+    val limit: Int? = null
 )
 
 @Composable
@@ -216,7 +220,10 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
     LaunchedEffect(Unit) {
         vm.onShowScore = onShowScore
         if (hostedConfig != null) {
-            vm.startHosted(hostedConfig.names, hostedConfig.seatKinds, hostedConfig.sendToSeat)
+            vm.startHosted(
+                hostedConfig.names, hostedConfig.seatKinds, hostedConfig.sendToSeat,
+                hostedConfig.initialCalc, hostedConfig.rules, hostedConfig.limit
+            )
         } else {
             vm.start(app, ai1, ai2)
         }
@@ -534,6 +541,7 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
             ScoreOverlay(
                 snap = snap,
                 modifier = Modifier.fillMaxSize(),
+                onSave = { vm.saveScoreSheet() },
                 onTap = { vm.onCanvasTap() }
             )
         }

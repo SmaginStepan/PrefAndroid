@@ -509,6 +509,54 @@ class Calculation {
         }
     }
 
+    /**
+     * Copy with the player columns rearranged: new index i takes old column
+     * order[i]. Every player reference (visty keys, game log, score log,
+     * dealer) is remapped, so a saved pulka can seat its players differently
+     * when a multiplayer game resumes from it.
+     */
+    fun reordered(order: List<Int>): Calculation {
+        val inv = IntArray(playersCount)
+        for (i in order.indices) inv[order[i]] = i
+        fun mp(p: Int) = if (p in 0 until playersCount) inv[p] else p
+        fun mpEntry(c: ScoreEntry) = ScoreEntry().also {
+            it.scoreType = c.scoreType
+            it.playerNum = mp(c.playerNum)
+            it.refPlayerNum = mp(c.refPlayerNum)
+            it.value = c.value
+        }
+        val out = Calculation()
+        out.limit = limit
+        out.created = created
+        out.dealer = mp(dealer)
+        out.rules = rules.clone()
+        out.scores = order.map { old ->
+            val s = scores[old]
+            Player().also { n ->
+                n.name = s.name
+                n.gora = s.gora
+                n.pulya = s.pulya
+                n.score = s.score
+                for ((k, v) in s.visty) n.visty[mp(k)] = v
+            }
+        }.toMutableList()
+        out.gameLog = gameLog.map { g ->
+            GameResult().also { n ->
+                n.gameType = g.gameType
+                n.dealer = mp(g.dealer)
+                n.contractor = mp(g.contractor)
+                n.contract = g.contract
+                n.taken = g.taken.entries.associate { (k, v) -> mp(k) to v }.toMutableMap()
+                n.visters = g.visters.map { mp(it) }.toMutableList()
+                n.multiplier = g.multiplier
+                n.halfWithDealer = g.halfWithDealer
+                n.customScore = g.customScore?.let { mpEntry(it) }
+            }
+        }.toMutableList()
+        out.log = log.map { mpEntry(it) }.toMutableList()
+        return out
+    }
+
     fun save() {
         val name = getFileName(created, playersCount, limit)
         save(name)
@@ -549,6 +597,34 @@ class Calculation {
             } catch (e: Exception) {
                 null
             }
+        }
+
+        /**
+         * Which pulka column each seat should take: match by name first
+         * (trimmed, case-insensitive), the rest keep their relative order.
+         */
+        fun seatOrder(seatNames: List<String>, calc: Calculation): List<Int> {
+            val n = calc.playersCount
+            val taken = BooleanArray(n)
+            val order = IntArray(minOf(seatNames.size, n)) { -1 }
+            for (i in order.indices) {
+                val name = seatNames[i].trim().lowercase()
+                val hit = (0 until n).firstOrNull {
+                    !taken[it] && calc.scores[it].name.trim().lowercase() == name
+                }
+                if (hit != null) {
+                    order[i] = hit
+                    taken[hit] = true
+                }
+            }
+            for (i in order.indices) {
+                if (order[i] < 0) {
+                    val free = (0 until n).first { !taken[it] }
+                    order[i] = free
+                    taken[free] = true
+                }
+            }
+            return order.toList()
         }
     }
 }

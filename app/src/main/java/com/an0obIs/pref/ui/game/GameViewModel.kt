@@ -128,12 +128,22 @@ class GameViewModel : ViewModel() {
     fun startHosted(
         names: List<String>,
         seatKinds: List<SeatKind>,
-        sendToSeat: (Int, GameMsg.State) -> Unit
+        sendToSeat: (Int, GameMsg.State) -> Unit,
+        initialCalc: Calculation? = null,
+        rules: com.an0obIs.pref.model.GameRules? = null,
+        limit: Int? = null
     ) {
         if (started) return
         started = true
         hosted = true
         game = Game.create()
+        if (initialCalc != null) {
+            // resume a saved pulka: seat its columns to match the room players
+            game.calc = initialCalc.reordered(Calculation.seatOrder(names, initialCalc))
+        } else {
+            rules?.let { game.calc.rules = it.clone() }
+            limit?.let { game.calc.limit = it }
+        }
         for (i in names.indices.take(3))
             game.calc.scores[i].name = names[i]
         val s = HostGameSession(
@@ -165,6 +175,15 @@ class GameViewModel : ViewModel() {
             buildMenu()
             refresh()
         }
+    }
+
+    /** Save the running multiplayer standings as a regular pulka file. */
+    fun saveScoreSheet(): Boolean = try {
+        game.calc.save()
+        true
+    } catch (e: Exception) {
+        android.util.Log.e("Pref", "score save failed", e)
+        false
     }
 
     /** A remote player's action arrived over the relay. */

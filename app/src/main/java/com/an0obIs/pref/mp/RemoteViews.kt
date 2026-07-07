@@ -98,7 +98,9 @@ object RemoteViews {
             visty = List(3) { i ->
                 List(3) { j -> if (i == j) 0 else (sc[idx(i)].visty[idx(j)] ?: 0) }
             },
-            limit = game.calc.limit
+            limit = game.calc.limit,
+            // at ScoreView calc.dealer already points at the next deal's dealer
+            dealer = rot(game.calc.dealer, viewer)
         )
     }
 

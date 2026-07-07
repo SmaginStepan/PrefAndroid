@@ -50,6 +50,9 @@ class LobbyViewModel : ViewModel() {
     /** Transient server error / event code; the UI maps it to a localized text. */
     var notice by mutableStateOf<String?>(null)
 
+    /** A saved pulka the host wants to resume from when the game starts. */
+    var loadedCalc by mutableStateOf<com.an0obIs.pref.model.Calculation?>(null)
+
     var myName by mutableStateOf("")
         private set
 
@@ -109,13 +112,13 @@ class LobbyViewModel : ViewModel() {
             is ServerMsg.RoomState -> currentRoom = msg.room
             is ServerMsg.Started -> started = true
             is ServerMsg.Left -> {
-                currentRoom = null; mySeat = null; started = false
+                currentRoom = null; mySeat = null; started = false; loadedCalc = null
             }
             is ServerMsg.Kicked -> {
-                currentRoom = null; mySeat = null; started = false; notice = "kicked"
+                currentRoom = null; mySeat = null; started = false; loadedCalc = null; notice = "kicked"
             }
             is ServerMsg.RoomClosed -> {
-                currentRoom = null; mySeat = null; started = false; notice = "room_closed"
+                currentRoom = null; mySeat = null; started = false; loadedCalc = null; notice = "room_closed"
             }
             is ServerMsg.Error -> notice = msg.code
             is ServerMsg.HostMsg -> hostStates.tryEmit(msg.data)
