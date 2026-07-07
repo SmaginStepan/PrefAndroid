@@ -227,12 +227,12 @@
     <string name="mp_start">Empezar partida</string>
     <string name="mp_add_bot">Añadir bot</string>
     <string name="mp_you_deal">Repartes esta mano. Turno de %1$s</string>
-    <string name="mp_save_finish">Guardar y terminar</string>
+    <string name="mp_save_finish">Terminar…</string>
     <string name="mp_load_scores">Cargar puntuación guardada</string>
     <string name="mp_scores_loaded_fmt">Continuar puntuación del %1$s</string>
     <string name="mp_clear">Quitar</string>
     <string name="mp_no_saved_scores">No hay hojas guardadas. Empieza una en la calculadora o guarda la puntuación durante una partida.</string>
-    <string name="game_btn_save_score">Guardar puntuación</string>
+    <string name="game_btn_save_score">Guardar</string>
     <string name="game_score_saved">Guardado</string>
     <string name="mp_kick">Expulsar</string>
     <string name="mp_leave">Salir</string>

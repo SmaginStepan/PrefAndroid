@@ -59,6 +59,26 @@ class HostGameSession(
     private var scoreWritten = false
     private var dealerConfirmed = true
 
+    // A human sitting dealer watches the deal at its own pace: the game holds
+    // at the prikup, after every trick and at the deal result until they tap.
+    private var spectatorSawTrick = -1 // deal.totalTaken value already confirmed
+    private var spectatorSawPrikup = false
+    private var spectatorSawEndPlay = false
+
+    private val dealerIsHuman: Boolean
+        get() = four && sittingOut >= 0 && seats[sittingOut] != SeatKind.BOT
+
+    /** The sitting dealer must tap through the current mid-deal stop. */
+    private fun spectatorHold(): Boolean {
+        if (!dealerIsHuman) return false
+        return when (game.phase) {
+            GamePhase.PrikupOpened -> !spectatorSawPrikup
+            GamePhase.EndTurn -> spectatorSawTrick != game.deal.totalTaken
+            GamePhase.EndPlay -> !spectatorSawEndPlay
+            else -> false
+        }
+    }
+
     // Animations produced by other seats' moves, replayed by the host UI.
     // Guests still get plain state snapshots.
     private val pendingAnims = ArrayDeque<Game.Animation>()
@@ -135,6 +155,9 @@ class HostGameSession(
         pendingResult = null
         scoreWritten = false
         dealerConfirmed = seats[d] == SeatKind.BOT
+        spectatorSawTrick = -1
+        spectatorSawPrikup = false
+        spectatorSawEndPlay = false
         trickConfirmed.clear()
         game.next()
     }
@@ -177,6 +200,12 @@ class HostGameSession(
                 }
                 newDeal4()
                 continue
+            }
+            if (spectatorHold()) {
+                // wait for the sitting dealer's tap before the actives move on
+                broadcast()
+                onLocalTurn()
+                return
             }
             when (seats[realOf(game.turnController())]) {
                 SeatKind.BOT -> {
@@ -235,8 +264,9 @@ class HostGameSession(
                     )
                 )
             } else {
-                // the sitting dealer spectates; between deals they confirm the score
-                val confirm = !ended && awaitingDealerConfirm
+                // the sitting dealer spectates; they tap through the prikup,
+                // every trick, the deal result and the score sheet
+                val confirm = !ended && (awaitingDealerConfirm || spectatorHold())
                 sendToSeat(
                     seat,
                     GameMsg.State(
@@ -264,11 +294,25 @@ class HostGameSession(
     /** Resend every guest's snapshot, e.g. after one of them reconnected. */
     fun rebroadcast() = broadcast()
 
-    /** The sitting dealer confirmed the deal's score. */
+    /** Anything the sitting dealer may currently tap through. */
+    val spectatorAwaiting: Boolean
+        get() = awaitingDealerConfirm || spectatorHold()
+
+    /** The sitting dealer tapped: release whatever stop is pending. */
     fun dealerConfirm() {
-        if (!awaitingDealerConfirm) return
-        dealerConfirmed = true
-        if (game.phase == GamePhase.Ended) pump()
+        if (awaitingDealerConfirm) {
+            dealerConfirmed = true
+            if (game.phase == GamePhase.Ended) pump()
+            return
+        }
+        if (!spectatorHold()) return
+        when (game.phase) {
+            GamePhase.PrikupOpened -> spectatorSawPrikup = true
+            GamePhase.EndTurn -> spectatorSawTrick = game.deal.totalTaken
+            GamePhase.EndPlay -> spectatorSawEndPlay = true
+            else -> return
+        }
+        pump()
     }
 
     /** Apply a remote player's answer. Ignores messages from the wrong seat. */

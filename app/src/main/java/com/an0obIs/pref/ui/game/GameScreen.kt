@@ -88,9 +88,14 @@ internal data class TableStrings(
 /** Port of DrawField's text section. Shared with the multiplayer guest screen. */
 internal fun buildTableStrings(ctx: Context, info: TableInfo, mp: Boolean = false): TableStrings {
     val base = buildTableStringsInner(ctx, info)
-    // The sitting 4-player dealer only watches this deal.
+    // The sitting 4-player dealer only watches this deal; during confirm
+    // phases the base hint already says "tap to continue".
     if (mp && info.watching && info.phase != GamePhase.Ended) {
-        return base.copy(hint = ctx.getString(R.string.mp_you_deal, info.names[info.controller]))
+        val confirmPhase = info.phase == GamePhase.EndTurn ||
+                info.phase == GamePhase.EndPlay || info.phase == GamePhase.PrikupOpened
+        if (!confirmPhase)
+            return base.copy(hint = ctx.getString(R.string.mp_you_deal, info.names[info.controller]))
+        return base
     }
     // In multiplayer, action hints belong only to the player who controls the
     // turn; everyone else sees whose move the table is waiting for.

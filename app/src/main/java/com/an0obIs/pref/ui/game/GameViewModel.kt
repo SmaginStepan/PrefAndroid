@@ -526,8 +526,9 @@ class GameViewModel : ViewModel() {
         }
         val s = session
         if (s != null && !s.hostActive) {
-            // sitting 4-player dealer: the only input is the score confirm
-            if (s.awaitingDealerConfirm) {
+            // sitting 4-player dealer: taps release the current spectator stop
+            // (prikup, trick, deal result or score sheet)
+            if (s.spectatorAwaiting) {
                 viewModelScope.launch {
                     busy = true
                     val anims = withContext(Dispatchers.Default) {

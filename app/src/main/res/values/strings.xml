@@ -227,12 +227,12 @@
     <string name="mp_start">Start game</string>
     <string name="mp_add_bot">Add bot</string>
     <string name="mp_you_deal">You deal this hand. %1$s to act</string>
-    <string name="mp_save_finish">Save and finish</string>
+    <string name="mp_save_finish">Finish…</string>
     <string name="mp_load_scores">Load saved scores</string>
     <string name="mp_scores_loaded_fmt">Resuming scores from %1$s</string>
     <string name="mp_clear">Remove</string>
     <string name="mp_no_saved_scores">No saved score sheets. Start one in the score calculator or save a score during a game.</string>
-    <string name="game_btn_save_score">Save score</string>
+    <string name="game_btn_save_score">Save</string>
     <string name="game_score_saved">Saved</string>
     <string name="mp_kick">Kick</string>
     <string name="mp_leave">Leave</string>

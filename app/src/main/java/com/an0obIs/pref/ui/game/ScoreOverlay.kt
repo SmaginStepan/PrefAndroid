@@ -6,7 +6,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -122,21 +124,25 @@ fun ScoreOverlay(
             )
         }
 
+        val btnPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp)
         Button(
             onClick = onTap,
-            modifier = Modifier.align(Alignment.BottomStart).padding(6.dp)
+            contentPadding = btnPadding,
+            modifier = Modifier.align(Alignment.BottomStart).padding(4.dp).height(30.dp)
         ) {
-            Text(stringResource(R.string.sheet_continue), fontSize = 12.sp)
+            Text(stringResource(R.string.sheet_continue), fontSize = 11.sp, maxLines = 1)
         }
 
         if (onFinish != null) {
             OutlinedButton(
                 onClick = onFinish,
-                modifier = Modifier.align(Alignment.BottomCenter).padding(6.dp)
+                contentPadding = btnPadding,
+                modifier = Modifier.align(Alignment.BottomCenter).padding(4.dp).height(30.dp)
             ) {
                 Text(
                     text = stringResource(R.string.mp_save_finish),
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
+                    maxLines = 1,
                     color = Color.White
                 )
             }
@@ -147,13 +153,15 @@ fun ScoreOverlay(
             OutlinedButton(
                 onClick = { saved = onSave() },
                 enabled = !saved,
-                modifier = Modifier.align(Alignment.BottomEnd).padding(6.dp)
+                contentPadding = btnPadding,
+                modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp).height(30.dp)
             ) {
                 Text(
                     text = stringResource(
                         if (saved) R.string.game_score_saved else R.string.game_btn_save_score
                     ),
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
+                    maxLines = 1,
                     color = Color.White
                 )
             }
