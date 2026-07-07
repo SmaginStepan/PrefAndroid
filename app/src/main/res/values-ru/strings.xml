@@ -69,6 +69,7 @@
     <string name="game_btn_tricks">Взятки</string>
     <string name="game_btn_close">Закрыть</string>
     <string name="game_btn_show_prikup">Расклад\nи сброс</string>
+    <string name="game_btn_hide_prikup">Скрыть</string>
     <string name="game_thinking">Думаю…</string>
     <string name="game_hint_your_move">Ваш ход</string>
     <string name="game_hint_move_ai">Сделайте ход с руки ИИ %s</string>

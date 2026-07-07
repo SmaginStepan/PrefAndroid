@@ -556,6 +556,14 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
                 Text(stringResource(R.string.game_btn_show_prikup), fontSize = 11.sp, color = Color.White)
             }
         }
+        if (!vm.busy && info.showPrikupHideBtn) {
+            OutlinedButton(
+                onClick = { vm.hideHandWithPrikup() },
+                modifier = Modifier.offset(x = ux(192.0), y = uy(30.0))
+            ) {
+                Text(stringResource(R.string.game_btn_hide_prikup), fontSize = 11.sp, color = Color.White)
+            }
+        }
 
         // Bottom-left action buttons
         Row(

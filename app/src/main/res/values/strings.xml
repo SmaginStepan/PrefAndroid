@@ -69,6 +69,7 @@
     <string name="game_btn_tricks">Tricks</string>
     <string name="game_btn_close">Close</string>
     <string name="game_btn_show_prikup">Layout\nand discard</string>
+    <string name="game_btn_hide_prikup">Hide</string>
     <string name="game_thinking">Thinking…</string>
     <string name="game_hint_your_move">Your move</string>
     <string name="game_hint_move_ai">Play a card from AI hand %s</string>

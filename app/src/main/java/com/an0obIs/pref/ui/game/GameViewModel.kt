@@ -51,6 +51,8 @@ data class TableInfo(
     val gameResult: Calculation.GameResult? = null,
     val showPrikupBtn1: Boolean = false,
     val showPrikupBtn2: Boolean = false,
+    /** the hand-with-talon view is active; offer the hide button */
+    val showPrikupHideBtn: Boolean = false,
     val showTricksBtn: Boolean = false
 )
 
@@ -291,6 +293,8 @@ class GameViewModel : ViewModel() {
         showPrikupBtn2 = (game.phase == GamePhase.Playing || game.phase == GamePhase.EndTurn)
                 && (game.currentGameType == GameType.Normal || game.currentGameType == GameType.Miser)
                 && game.contractor == 2 && game.opening && showPrikupHand != 2,
+        showPrikupHideBtn = (game.phase == GamePhase.Playing || game.phase == GamePhase.EndTurn)
+                && showPrikupHand != null && showPrikupHand == game.contractor,
         showTricksBtn = game.phase == GamePhase.Playing || game.phase == GamePhase.EndTurn
                 || game.phase == GamePhase.EndPlay
     )
@@ -721,6 +725,14 @@ class GameViewModel : ViewModel() {
         if (busy) return
         showPrikupHand = hand
         field = TableLayout.computeField(game, cardsToDiscard.toList(), hand)
+        info = buildTableInfo()
+    }
+
+    /** Back from the hand-with-talon view to the normal table. */
+    fun hideHandWithPrikup() {
+        if (busy || showPrikupHand == null) return
+        showPrikupHand = null
+        field = TableLayout.computeField(game, cardsToDiscard.toList(), null)
         info = buildTableInfo()
     }
 

@@ -69,6 +69,7 @@
     <string name="game_btn_tricks">Bazas</string>
     <string name="game_btn_close">Cerrar</string>
     <string name="game_btn_show_prikup">Reparto\ny descarte</string>
+    <string name="game_btn_hide_prikup">Ocultar</string>
     <string name="game_thinking">Pensando…</string>
     <string name="game_hint_your_move">Tu turno</string>
     <string name="game_hint_move_ai">Juega una carta de la mano de la IA %s</string>
