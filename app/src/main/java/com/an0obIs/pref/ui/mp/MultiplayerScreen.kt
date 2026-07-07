@@ -90,6 +90,19 @@ fun MultiplayerScreen(onBack: () -> Unit) {
 private fun MpHostScreen(lobbyVm: LobbyViewModel, room: RoomInfo) {
     val app = androidx.compose.ui.platform.LocalContext.current.applicationContext
             as com.an0obIs.pref.PrefApp
+    // fire when a guest seat comes back online, so the host resends state
+    val reconnects = remember(room.id) {
+        kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 4)
+    }
+    var prevConnected by remember(room.id) {
+        mutableStateOf(room.seats.map { it?.connected == true })
+    }
+    LaunchedEffect(room) {
+        val now = room.seats.map { it?.connected == true }
+        if (prevConnected.zip(now).any { (was, is_) -> !was && is_ })
+            reconnects.tryEmit(Unit)
+        prevConnected = now
+    }
     val config = remember(room.id) {
         val names = (0 until room.maxSeats).map { i -> room.seats.getOrNull(i)?.name ?: "?" }
         val kinds = (0 until room.maxSeats).map { i ->
@@ -107,6 +120,8 @@ private fun MpHostScreen(lobbyVm: LobbyViewModel, room: RoomInfo) {
             initialCalc = lobbyVm.loadedCalc,
             rules = roomRules?.gameRules,
             limit = roomRules?.limit,
+            reconnects = reconnects,
+            onFinished = { lobbyVm.leave() },
             sendToSeat = { seat, state ->
                 lobbyVm.sendGameToSeat(
                     seat,

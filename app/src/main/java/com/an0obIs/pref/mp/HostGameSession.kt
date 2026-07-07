@@ -72,8 +72,11 @@ class HostGameSession(
 
     // Seats (real) that already confirmed the trick being shown in EndTurn:
     // the engine keeps it in deal.inPlay until everyone confirmed, but a
-    // player who tapped through shouldn't see it come back.
+    // player who tapped through shouldn't see it come back. Tied to the
+    // trick number: a passive player can see several tricks go by without
+    // the phase ever leaving EndTurn between their confirms.
     private val trickConfirmed = mutableSetOf<Int>()
+    private var trickConfirmedAt = -1
 
     init {
         if (!four) {
@@ -208,7 +211,8 @@ class HostGameSession(
 
     /** Send every REMOTE seat its personal view of the current state. */
     private fun broadcast(badMoveFor: Int = -1) {
-        if (game.phase != GamePhase.EndTurn) trickConfirmed.clear()
+        if (game.phase != GamePhase.EndTurn || game.deal.totalTaken != trickConfirmedAt)
+            trickConfirmed.clear()
         val ended = if (four) matchEnded else game.phase == GamePhase.Ended
         val withScores = game.phase == GamePhase.ScoreView || game.phase == GamePhase.Ended
         for (seat in seats.indices) {
@@ -248,6 +252,17 @@ class HostGameSession(
             }
         }
     }
+
+    /** Host ends the match early (after saving the pulka): everyone gets a
+     *  final ended state with the standings. */
+    fun abortMatch() {
+        matchEnded = true
+        game.phase = GamePhase.Ended
+        broadcast()
+    }
+
+    /** Resend every guest's snapshot, e.g. after one of them reconnected. */
+    fun rebroadcast() = broadcast()
 
     /** The sitting dealer confirmed the deal's score. */
     fun dealerConfirm() {
@@ -308,6 +323,7 @@ class HostGameSession(
             GamePhase.EndTurn -> {
                 if (act.confirm != true) return
                 trickConfirmed.add(seat)
+                trickConfirmedAt = game.deal.totalTaken
                 game.turnClose()
             }
             GamePhase.EndPlay -> {

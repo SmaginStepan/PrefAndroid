@@ -204,6 +204,33 @@ class GameViewModel : ViewModel() {
         false
     }
 
+    /** Invoked after the host saves-and-finishes (e.g. to leave the room). */
+    var onMatchFinished: (() -> Unit)? = null
+
+    /** Host only: save the pulka and end the multiplayer match for everyone. */
+    fun saveAndFinish() {
+        val s = session ?: return
+        if (busy) return
+        viewModelScope.launch {
+            busy = true
+            saveScoreSheet()
+            withContext(Dispatchers.Default) { mpMutex.withLock { s.abortMatch() } }
+            busy = false
+            syncHostedGame()
+            buildMenu()
+            refresh()
+            onMatchFinished?.invoke()
+        }
+    }
+
+    /** A guest reconnected: push everyone a fresh snapshot. */
+    fun onGuestReconnected() {
+        val s = session ?: return
+        viewModelScope.launch {
+            withContext(Dispatchers.Default) { mpMutex.withLock { s.rebroadcast() } }
+        }
+    }
+
     /** A remote player's action arrived over the relay. */
     fun onRemoteAct(seat: Int, act: GameMsg.Act) {
         val s = session ?: return
@@ -270,13 +297,17 @@ class GameViewModel : ViewModel() {
 
     // The engine keeps a finished trick in deal.inPlay until every player has
     // confirmed it; once the local player confirmed, keep it off the table so
-    // it doesn't reappear while the remote players are still looking.
+    // it doesn't reappear while the remote players are still looking. Tied to
+    // the trick number: when the host only watches, whole tricks can pass
+    // between two refreshes without the phase ever leaving EndTurn.
     private var trickCollected = false
+    private var trickCollectedAt = -1
 
     /** Recompute all published render state from the (quiescent) game. */
     private fun refresh() {
         showPrikupHand = null
-        if (game.phase != GamePhase.EndTurn) trickCollected = false
+        if (game.phase != GamePhase.EndTurn || game.deal.totalTaken != trickCollectedAt)
+            trickCollected = false
         val s = session
         val f = if (s != null && !s.hostActive)
             RemoteViews.buildFieldFor(game, 0, spectator = true) // host deals: watch only
@@ -548,6 +579,7 @@ class GameViewModel : ViewModel() {
             trickAnim = null
             busy = false
             trickCollected = true
+            trickCollectedAt = game.deal.totalTaken
             game.turnClose()
             gameNext()
         }

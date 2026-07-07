@@ -50,6 +50,8 @@ fun ScoreOverlay(
     snap: ScoreSnap,
     modifier: Modifier = Modifier,
     onSave: (() -> Boolean)? = null,
+    /** Host only: save the pulka and end the match for everyone. */
+    onFinish: (() -> Unit)? = null,
     onTap: () -> Unit
 ) {
     val n = snap.names.size
@@ -125,6 +127,19 @@ fun ScoreOverlay(
             modifier = Modifier.align(Alignment.BottomStart).padding(6.dp)
         ) {
             Text(stringResource(R.string.sheet_continue), fontSize = 12.sp)
+        }
+
+        if (onFinish != null) {
+            OutlinedButton(
+                onClick = onFinish,
+                modifier = Modifier.align(Alignment.BottomCenter).padding(6.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.mp_save_finish),
+                    fontSize = 12.sp,
+                    color = Color.White
+                )
+            }
         }
 
         if (onSave != null) {

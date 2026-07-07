@@ -228,7 +228,11 @@ class HostedConfig(
     /** resume from a saved pulka (already carries rules, limit and dealer) */
     val initialCalc: com.an0obIs.pref.model.Calculation? = null,
     val rules: com.an0obIs.pref.model.GameRules? = null,
-    val limit: Int? = null
+    val limit: Int? = null,
+    /** fires when a guest seat reconnects, so the host resends snapshots */
+    val reconnects: kotlinx.coroutines.flow.Flow<Unit>? = null,
+    /** invoked after the host saves-and-finishes the match */
+    val onFinished: () -> Unit = {}
 )
 
 @Composable
@@ -252,7 +256,13 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
     }
     if (hostedConfig != null) {
         LaunchedEffect(Unit) {
+            vm.onMatchFinished = hostedConfig.onFinished
             hostedConfig.acts.collect { (seat, act) -> vm.onRemoteAct(seat, act) }
+        }
+        hostedConfig.reconnects?.let { flow ->
+            LaunchedEffect(Unit) {
+                flow.collect { vm.onGuestReconnected() }
+            }
         }
     }
 
@@ -567,6 +577,7 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
                 snap = snap,
                 modifier = Modifier.fillMaxSize(),
                 onSave = { vm.saveScoreSheet() },
+                onFinish = { vm.saveAndFinish() },
                 onTap = { vm.onCanvasTap() }
             )
         }
