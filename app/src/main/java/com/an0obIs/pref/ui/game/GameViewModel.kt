@@ -470,7 +470,16 @@ class GameViewModel : ViewModel() {
     // region interactions
 
     fun onCardTap(pc: PlacedCard) {
-        if (busy || !localTurnAllowed) return
+        if (busy) return
+        // confirm phases advance on a tap anywhere, including on cards
+        if (game.phase == GamePhase.PrikupOpened || game.phase == GamePhase.EndTurn ||
+            game.phase == GamePhase.EndPlay || game.phase == GamePhase.ScoreView ||
+            session?.hostActive == false
+        ) {
+            onCanvasTap()
+            return
+        }
+        if (!localTurnAllowed) return
         val card = pc.card ?: return
         if (pc.isInPlay || pc.isPrikup) return
         if (game.phase == GamePhase.Playing) {

@@ -161,6 +161,11 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
                         interactionSource = remember(pc) { MutableInteractionSource() },
                         indication = null
                     ) {
+                        // confirm asks advance on a tap anywhere, including on cards
+                        if (ask?.kind == "confirm") {
+                            act(GameMsg.Act(confirm = true))
+                            return@clickable
+                        }
                         val card = pc.card ?: return@clickable
                         if (pc.isInPlay || pc.isPrikup) return@clickable
                         when (ask?.kind) {
