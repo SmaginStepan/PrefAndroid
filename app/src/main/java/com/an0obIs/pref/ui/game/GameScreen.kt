@@ -181,7 +181,7 @@ private fun buildTableStringsInner(ctx: Context, info: TableInfo): TableStrings 
 internal fun SitOutBadge(name: String, ux: (Double) -> Dp, uy: (Double) -> Dp) {
     Box(
         modifier = Modifier
-            .offset(x = ux(140.0), y = uy(23.0))
+            .offset(x = ux(140.0), y = uy(2.0))
             .width(ux(200.0)),
         contentAlignment = Alignment.Center
     ) {
@@ -528,7 +528,7 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
         if (!vm.busy && info.showPrikupBtn1) {
             OutlinedButton(
                 onClick = { vm.showHandWithPrikup(1) },
-                modifier = Modifier.offset(x = ux(192.0), y = uy(0.0))
+                modifier = Modifier.offset(x = ux(192.0), y = uy(30.0))
             ) {
                 Text(stringResource(R.string.game_btn_show_prikup), fontSize = 11.sp, color = Color.White)
             }
@@ -536,7 +536,7 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
         if (!vm.busy && info.showPrikupBtn2) {
             OutlinedButton(
                 onClick = { vm.showHandWithPrikup(2) },
-                modifier = Modifier.offset(x = ux(192.0), y = uy(0.0))
+                modifier = Modifier.offset(x = ux(192.0), y = uy(30.0))
             ) {
                 Text(stringResource(R.string.game_btn_show_prikup), fontSize = 11.sp, color = Color.White)
             }

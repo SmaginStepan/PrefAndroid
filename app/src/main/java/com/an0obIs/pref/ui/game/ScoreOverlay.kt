@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -119,13 +120,12 @@ fun ScoreOverlay(
             )
         }
 
-        Text(
-            text = stringResource(R.string.game_hint_end),
-            color = Color.White.copy(alpha = 0.7f),
-            fontSize = 11.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.offset(y = uy(if (n == 4) 530.0 else 275.0)).width(ux(480.0))
-        )
+        Button(
+            onClick = onTap,
+            modifier = Modifier.align(Alignment.BottomStart).padding(6.dp)
+        ) {
+            Text(stringResource(R.string.sheet_continue), fontSize = 12.sp)
+        }
 
         if (onSave != null) {
             var saved by remember(snap) { mutableStateOf(false) }
