@@ -174,7 +174,7 @@ class MainActivity : AppCompatActivity() {
                     fromGame = false,
                     startWithSetup = setup,
                     onHelp = { navController.navigate(Routes.CALC_HELP) },
-                    onResults = { navController.navigate(Routes.RESULTS) },
+                    onResults = { navController.navigate("${Routes.RESULTS}/calc") },
                     onResultsHighscores = { navController.navigate(Routes.RESULTS_HIGH) },
                     onRecordGame = { navController.navigate(Routes.WRITE_GAME) },
                     onHistory = { navController.navigate(Routes.GAME_LOG) },
@@ -190,7 +190,7 @@ class MainActivity : AppCompatActivity() {
                     fromGame = true,
                     startWithSetup = false,
                     onHelp = { navController.navigate(Routes.CALC_HELP) },
-                    onResults = { navController.navigate(Routes.RESULTS) },
+                    onResults = { navController.navigate("${Routes.RESULTS}/game") },
                     onResultsHighscores = {
                         navController.navigate(Routes.RESULTS_HIGH) {
                             popUpTo(Routes.MENU)
@@ -212,8 +212,12 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            composable(Routes.RESULTS) {
-                val calc = app.calc ?: app.game?.calc
+            composable("${Routes.RESULTS}/{src}") { entry ->
+                // which pulka to settle: the running game's or the calculator's
+                val calc = if (entry.arguments?.getString("src") == "game")
+                    app.game?.calc
+                else
+                    app.calc
                 if (calc == null) {
                     PlaceholderScreen("")
                 } else {
