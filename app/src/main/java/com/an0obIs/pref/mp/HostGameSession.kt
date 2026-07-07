@@ -59,6 +59,17 @@ class HostGameSession(
     private var scoreWritten = false
     private var dealerConfirmed = true
 
+    // Animations produced by other seats' moves, replayed by the host UI.
+    // Guests still get plain state snapshots.
+    private val pendingAnims = ArrayDeque<Game.Animation>()
+
+    /** Take (and clear) the queued animations. Call under the session lock. */
+    fun drainAnims(): List<Game.Animation> {
+        val res = pendingAnims.toList()
+        pendingAnims.clear()
+        return res
+    }
+
     // Seats (real) that already confirmed the trick being shown in EndTurn:
     // the engine keeps it in deal.inPlay until everyone confirmed, but a
     // player who tapped through shouldn't see it come back.
@@ -148,7 +159,8 @@ class HostGameSession(
     /** Advance until a human (local or remote) must act, playing bots inline. */
     fun pump() {
         while (true) {
-            game.animations.clear() // multiplayer sends state snapshots instead
+            pendingAnims += game.animations // kept for the host UI to replay
+            game.animations.clear()
             if (four && game.phase == GamePhase.EndPlay && pendingResult == null)
                 pendingResult = game.getGameResult() // before writeGame skews the multiplier
             if (four && game.phase == GamePhase.ScoreView && !scoreWritten)

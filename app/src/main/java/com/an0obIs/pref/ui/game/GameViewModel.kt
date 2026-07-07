@@ -87,7 +87,7 @@ class GameViewModel : ViewModel() {
      * used from viewModelScope: it needs a MonotonicFrameClock that only exists
      * in composition-launched coroutines.)
      */
-    private suspend fun runAnim(durationMs: Long = 300) {
+    private suspend fun runAnim(durationMs: Long = 360) {
         val start = SystemClock.uptimeMillis()
         animProgress = 0f
         while (true) {
@@ -165,26 +165,34 @@ class GameViewModel : ViewModel() {
         viewModelScope.launch {
             busy = true
             thinking = true
-            withContext(Dispatchers.Default) {
+            val anims = withContext(Dispatchers.Default) {
                 mpMutex.withLock {
                     try {
                         s.start()
                     } catch (e: Exception) {
                         android.util.Log.e("Pref", "hosted start error", e)
                     }
+                    s.drainAnims()
                 }
             }
             thinking = false
-            busy = false
             syncHostedGame()
+            processAnimations(ArrayDeque(anims))
+            busy = false
             buildMenu()
             refresh()
         }
     }
 
-    /** 4-player sessions swap in a fresh 3-player game every deal. */
-    private fun syncHostedGame() {
-        session?.let { if (game !== it.game) game = it.game }
+    /** 4-player sessions swap in a fresh 3-player game every deal.
+     *  Returns true (after refreshing) when a new deal was swapped in, so
+     *  callers replay its animations over the new table, not the old screen. */
+    private fun syncHostedGame(): Boolean {
+        val s = session ?: return false
+        if (game === s.game) return false
+        game = s.game
+        refresh()
+        return true
     }
 
     /** Save the running multiplayer standings as a regular pulka file. */
@@ -200,16 +208,22 @@ class GameViewModel : ViewModel() {
     fun onRemoteAct(seat: Int, act: GameMsg.Act) {
         val s = session ?: return
         viewModelScope.launch {
-            withContext(Dispatchers.Default) {
+            val anims = withContext(Dispatchers.Default) {
                 mpMutex.withLock {
                     try {
                         s.onRemoteAct(seat, act)
                     } catch (e: Exception) {
                         android.util.Log.e("Pref", "remote act error", e)
                     }
+                    s.drainAnims()
                 }
             }
             syncHostedGame()
+            if (anims.isNotEmpty()) {
+                busy = true
+                processAnimations(ArrayDeque(anims))
+                busy = false
+            }
             buildMenu()
             refresh()
         }
@@ -251,6 +265,7 @@ class GameViewModel : ViewModel() {
                 && (game.currentGameType == GameType.Normal || game.currentGameType == GameType.Miser)
                 && game.contractor == 2 && game.opening && showPrikupHand != 2,
         showTricksBtn = game.phase == GamePhase.Playing || game.phase == GamePhase.EndTurn
+                || game.phase == GamePhase.EndPlay
     )
 
     // The engine keeps a finished trick in deal.inPlay until every player has
@@ -283,23 +298,26 @@ class GameViewModel : ViewModel() {
         if (hosted && s != null) {
             // hosted: the local action was already applied; the session runs
             // next() + bots + remote broadcasting
+            game.animations.clear() // the own action was animated by the UI already
             viewModelScope.launch {
                 loopRunning = true
                 busy = true
                 thinking = true
                 transientHint = null
-                withContext(Dispatchers.Default) {
+                val anims = withContext(Dispatchers.Default) {
                     mpMutex.withLock {
                         try {
                             s.onLocalActed()
                         } catch (e: Exception) {
                             android.util.Log.e("Pref", "hosted loop error (phase=${game.phase})", e)
                         }
+                        s.drainAnims()
                     }
                 }
                 thinking = false
-                busy = false
                 syncHostedGame()
+                processAnimations(ArrayDeque(anims))
+                busy = false
                 buildMenu()
                 refresh()
                 loopRunning = false
@@ -354,9 +372,9 @@ class GameViewModel : ViewModel() {
     val isGameEnded: Boolean
         get() = game.phase == GamePhase.Ended
 
-    private suspend fun processAnimations() {
+    private suspend fun processAnimations(queue: ArrayDeque<Game.Animation> = game.animations) {
         while (true) {
-            val a = if (game.animations.isNotEmpty()) game.animations.removeFirst() else break
+            val a = if (queue.isNotEmpty()) queue.removeFirst() else break
             val card = a.card
             if (card != null) {
                 val from = field.firstOrNull { it.hand == a.player && it.card?.id == card.id }
@@ -372,7 +390,7 @@ class GameViewModel : ViewModel() {
             } else {
                 // bid announcement: grows while flying from the bidder to center
                 say = SayEvent(a.player, a.bid, a.text)
-                runAnim(800)
+                runAnim(960)
                 kotlinx.coroutines.delay(300)
                 say = null
             }
@@ -481,9 +499,15 @@ class GameViewModel : ViewModel() {
             if (s.awaitingDealerConfirm) {
                 viewModelScope.launch {
                     busy = true
-                    withContext(Dispatchers.Default) { mpMutex.withLock { s.dealerConfirm() } }
-                    busy = false
+                    val anims = withContext(Dispatchers.Default) {
+                        mpMutex.withLock {
+                            s.dealerConfirm()
+                            s.drainAnims()
+                        }
+                    }
                     syncHostedGame()
+                    processAnimations(ArrayDeque(anims))
+                    busy = false
                     buildMenu()
                     refresh()
                 }

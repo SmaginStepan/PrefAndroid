@@ -624,7 +624,8 @@ class Game {
                     return false
                 }
                 if (!onlyCheck) {
-                    if (isAI()) {
+                    // externalDriver: the hosting UI animates every seat's play
+                    if (isAI() || externalDriver) {
                         addAnimation(Animation().also {
                             it.player = playerInTurn
                             it.card = card
