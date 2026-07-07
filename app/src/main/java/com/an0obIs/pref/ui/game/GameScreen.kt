@@ -569,7 +569,9 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
                         .weight(1f)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    for (take in vm.tricks) {
+                    for ((idx, take) in vm.tricks.withIndex()) {
+                        // only the last trick may be reviewed until the deal ends
+                        val faceDown = vm.hidePastTricks && idx < vm.tricks.size - 1
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -588,11 +590,11 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
                                 horizontalArrangement = Arrangement.Center
                             ) {
                                 take.prikupMove?.let {
-                                    Image(bitmap = images.get(it), filterQuality = FilterQuality.High, contentDescription = null, modifier = Modifier.size(34.dp))
+                                    Image(bitmap = images.get(if (faceDown) null else it), filterQuality = FilterQuality.High, contentDescription = null, modifier = Modifier.size(34.dp))
                                 }
-                                Image(bitmap = images.get(take.nextMove), filterQuality = FilterQuality.High, contentDescription = null, modifier = Modifier.size(34.dp))
-                                Image(bitmap = images.get(take.prevMove), filterQuality = FilterQuality.High, contentDescription = null, modifier = Modifier.size(34.dp))
-                                Image(bitmap = images.get(take.myMove), filterQuality = FilterQuality.High, contentDescription = null, modifier = Modifier.size(34.dp))
+                                Image(bitmap = images.get(if (faceDown) null else take.nextMove), filterQuality = FilterQuality.High, contentDescription = null, modifier = Modifier.size(34.dp))
+                                Image(bitmap = images.get(if (faceDown) null else take.prevMove), filterQuality = FilterQuality.High, contentDescription = null, modifier = Modifier.size(34.dp))
+                                Image(bitmap = images.get(if (faceDown) null else take.myMove), filterQuality = FilterQuality.High, contentDescription = null, modifier = Modifier.size(34.dp))
                             }
                             Text(
                                 text = vm.tricksNames[take.takenBy] ?: "",

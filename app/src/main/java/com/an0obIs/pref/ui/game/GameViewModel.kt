@@ -587,12 +587,15 @@ class GameViewModel : ViewModel() {
         }
     }
 
+    /** While the deal is still played, earlier tricks show as card backs. */
+    var hidePastTricks by mutableStateOf(false)
+        private set
+
     fun openTricks() {
         if (busy) return
         val ai = game.aIs[game.playerInTurn] ?: return
-        // until the deal's play is over only the last trick may be reviewed
-        val all = ai.outOfPlay.toList()
-        tricks = if (game.deal.totalTaken < 10) all.takeLast(1) else all
+        tricks = ai.outOfPlay.toList()
+        hidePastTricks = game.deal.totalTaken < 10
         tricksNames = mapOf(
             -1 to game.calc.scores[game.getPrevPlayer()].name,
             0 to game.calc.scores[game.playerInTurn].name,
