@@ -226,6 +226,7 @@
     <string name="mp_waiting_host">Esperando a que el anfitrión empiece…</string>
     <string name="mp_start">Empezar partida</string>
     <string name="mp_add_bot">Añadir bot</string>
+    <string name="mp_you_deal">Repartes esta mano. Turno de %1$s</string>
     <string name="mp_load_scores">Cargar puntuación guardada</string>
     <string name="mp_scores_loaded_fmt">Continuar puntuación del %1$s</string>
     <string name="mp_clear">Quitar</string>

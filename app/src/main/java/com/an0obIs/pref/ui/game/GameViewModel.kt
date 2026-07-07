@@ -44,6 +44,10 @@ data class TableInfo(
     val playerInTurn: Int = 0,
     /** who acts now; differs from playerInTurn when the whister moves for the passer */
     val controller: Int = 0,
+    /** the viewer sits out this deal (4-player: the dealer watches) */
+    val watching: Boolean = false,
+    /** name of the sitting 4-player dealer, shown top-center */
+    val sitOutName: String? = null,
     val gameResult: Calculation.GameResult? = null,
     val showPrikupBtn1: Boolean = false,
     val showPrikupBtn2: Boolean = false,
@@ -136,28 +140,28 @@ class GameViewModel : ViewModel() {
         if (started) return
         started = true
         hosted = true
-        game = Game.create()
-        if (initialCalc != null) {
-            // resume a saved pulka: seat its columns to match the room players
-            game.calc = initialCalc.reordered(Calculation.seatOrder(names, initialCalc))
-        } else {
-            rules?.let { game.calc.rules = it.clone() }
-            limit?.let { game.calc.limit = it }
-        }
-        for (i in names.indices.take(3))
-            game.calc.scores[i].name = names[i]
+        val n = seatKinds.size
+        // resume a saved pulka (its columns seated to match the room players),
+        // or a fresh sheet with the room's rules
+        val matchCalc = initialCalc?.reordered(Calculation.seatOrder(names, initialCalc))
+            ?: Calculation(n, limit ?: 10).also { c -> rules?.let { c.rules = it.clone() } }
+        for (i in names.indices.take(n))
+            matchCalc.scores[i].name = names[i]
         val s = HostGameSession(
-            game = game,
             seats = seatKinds,
+            names = names,
+            matchCalc = matchCalc,
             sendToSeat = sendToSeat,
             onLocalTurn = {
                 viewModelScope.launch {
+                    syncHostedGame()
                     buildMenu()
                     refresh()
                 }
             }
         )
         session = s
+        game = s.game
         viewModelScope.launch {
             busy = true
             thinking = true
@@ -172,14 +176,20 @@ class GameViewModel : ViewModel() {
             }
             thinking = false
             busy = false
+            syncHostedGame()
             buildMenu()
             refresh()
         }
     }
 
+    /** 4-player sessions swap in a fresh 3-player game every deal. */
+    private fun syncHostedGame() {
+        session?.let { if (game !== it.game) game = it.game }
+    }
+
     /** Save the running multiplayer standings as a regular pulka file. */
     fun saveScoreSheet(): Boolean = try {
-        game.calc.save()
+        (session?.matchCalc ?: game.calc).save()
         true
     } catch (e: Exception) {
         android.util.Log.e("Pref", "score save failed", e)
@@ -199,6 +209,7 @@ class GameViewModel : ViewModel() {
                     }
                 }
             }
+            syncHostedGame()
             buildMenu()
             refresh()
         }
@@ -230,6 +241,8 @@ class GameViewModel : ViewModel() {
         playerToTake = game.playerToTake,
         playerInTurn = game.playerInTurn,
         controller = game.turnController(),
+        watching = session?.hostActive == false,
+        sitOutName = session?.sitOutName,
         gameResult = if (game.phase == GamePhase.EndPlay) game.getGameResult() else null,
         showPrikupBtn1 = (game.phase == GamePhase.Playing || game.phase == GamePhase.EndTurn)
                 && (game.currentGameType == GameType.Normal || game.currentGameType == GameType.Miser)
@@ -249,12 +262,18 @@ class GameViewModel : ViewModel() {
     private fun refresh() {
         showPrikupHand = null
         if (game.phase != GamePhase.EndTurn) trickCollected = false
-        val f = TableLayout.computeField(game, cardsToDiscard.toList(), null)
+        val s = session
+        val f = if (s != null && !s.hostActive)
+            RemoteViews.buildFieldFor(game, 0, spectator = true) // host deals: watch only
+        else
+            TableLayout.computeField(game, cardsToDiscard.toList(), null)
         field = if (trickCollected) f.filter { !it.isInPlay } else f
         pinnedOverlays.clear()
         info = buildTableInfo()
-        scoresOverlay = if (hosted && (game.phase == GamePhase.ScoreView || game.phase == GamePhase.Ended))
-            RemoteViews.buildScoresFor(game, 0)
+        scoresOverlay = if (hosted && s != null &&
+            (game.phase == GamePhase.ScoreView || game.phase == GamePhase.Ended)
+        )
+            RemoteViews.buildScoresFrom(s.matchCalc, 0)
         else null
     }
 
@@ -280,6 +299,7 @@ class GameViewModel : ViewModel() {
                 }
                 thinking = false
                 busy = false
+                syncHostedGame()
                 buildMenu()
                 refresh()
                 loopRunning = false
@@ -360,9 +380,10 @@ class GameViewModel : ViewModel() {
     }
 
     /** In hosted games the local player may only act on turns they control
-     *  (their own, or the passer's when whisting an open game). */
-    private val localTurnAllowed: Boolean
-        get() = !hosted || game.turnController() == 0
+     *  (their own, or the passer's when whisting an open game); never while
+     *  sitting out as the 4-player dealer. */
+    val localTurnAllowed: Boolean
+        get() = !hosted || (session?.hostActive != false && game.turnController() == 0)
 
     /** Port of Draw()'s menu construction. */
     private fun buildMenu() {
@@ -452,6 +473,21 @@ class GameViewModel : ViewModel() {
         if (busy) return
         if (showTricks) {
             showTricks = false
+            return
+        }
+        val s = session
+        if (s != null && !s.hostActive) {
+            // sitting 4-player dealer: the only input is the score confirm
+            if (s.awaitingDealerConfirm) {
+                viewModelScope.launch {
+                    busy = true
+                    withContext(Dispatchers.Default) { mpMutex.withLock { s.dealerConfirm() } }
+                    busy = false
+                    syncHostedGame()
+                    buildMenu()
+                    refresh()
+                }
+            }
             return
         }
         if (!localTurnAllowed) return

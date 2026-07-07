@@ -88,6 +88,10 @@ internal data class TableStrings(
 /** Port of DrawField's text section. Shared with the multiplayer guest screen. */
 internal fun buildTableStrings(ctx: Context, info: TableInfo, mp: Boolean = false): TableStrings {
     val base = buildTableStringsInner(ctx, info)
+    // The sitting 4-player dealer only watches this deal.
+    if (mp && info.watching && info.phase != GamePhase.Ended) {
+        return base.copy(hint = ctx.getString(R.string.mp_you_deal, info.names[info.controller]))
+    }
     // In multiplayer, action hints belong only to the player who controls the
     // turn; everyone else sees whose move the table is waiting for.
     if (mp && info.controller != 0 && info.phase != GamePhase.Ended) {
@@ -170,6 +174,24 @@ private fun buildTableStringsInner(ctx: Context, info: TableInfo): TableStrings 
         else -> {}
     }
     return TableStrings(p0, p1, p2, gameInfo, hint, result)
+}
+
+/** 4-player games: the dealer sits this deal out, shown top center. */
+@Composable
+internal fun SitOutBadge(name: String, ux: (Double) -> Dp, uy: (Double) -> Dp) {
+    Box(
+        modifier = Modifier
+            .offset(x = ux(140.0), y = uy(23.0))
+            .width(ux(200.0)),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "$name (" + stringResource(R.string.dealer_badge) + ")",
+            fontSize = 11.sp,
+            color = Color.White.copy(alpha = 0.85f),
+            maxLines = 1
+        )
+    }
 }
 
 /** Small badge marking the dealing player, anchored to their table position. */
@@ -347,8 +369,11 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
                 .width(ux(285.0))
         )
 
-        // Dealer marker
-        if (info.names[info.dealer].isNotEmpty()) {
+        // Dealer marker; in 4-player games the dealer sits out (top center)
+        val sitOut = info.sitOutName
+        if (sitOut != null) {
+            SitOutBadge(sitOut, ::ux, ::uy)
+        } else if (info.names[info.dealer].isNotEmpty()) {
             DealerBadge(info.dealer, ::ux, ::uy)
         }
 
@@ -453,8 +478,8 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
             }
         }
 
-        // Choice buttons (in hosted games: only on the local player's turn)
-        if (!vm.busy && (!vm.hosted || info.playerInTurn == 0)) {
+        // Choice buttons (in hosted games: only on turns the local player controls)
+        if (!vm.busy && vm.localTurnAllowed) {
             val phase = info.phase
             val btn1Label: String? = when (phase) {
                 GamePhase.Negotiations -> vm.selectedBid?.let { GameTexts.bidTitle(ctx, it) }

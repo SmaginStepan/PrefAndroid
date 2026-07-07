@@ -226,6 +226,7 @@
     <string name="mp_waiting_host">Ждём, когда ведущий начнёт…</string>
     <string name="mp_start">Начать игру</string>
     <string name="mp_add_bot">Добавить бота</string>
+    <string name="mp_you_deal">Вы сдаёте. Ход: %1$s</string>
     <string name="mp_load_scores">Загрузить пулю</string>
     <string name="mp_scores_loaded_fmt">Продолжение пули от %1$s</string>
     <string name="mp_clear">Убрать</string>

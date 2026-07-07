@@ -68,14 +68,15 @@ class GuestGameViewModel : ViewModel() {
 
     /** Save the host's score snapshot as a regular pulka file (guest view: self = player 0). */
     fun saveScoreSheet(snap: com.an0obIs.pref.mp.ScoreSnap): Boolean = try {
-        val c = com.an0obIs.pref.model.Calculation(3, snap.limit)
+        val n = snap.names.size
+        val c = com.an0obIs.pref.model.Calculation(n, snap.limit)
         c.created = calcCreated
         c.dealer = snap.dealer
-        for (i in 0..2) {
+        for (i in 0 until n) {
             c.scores[i].name = snap.names[i]
             c.scores[i].pulya = snap.pulya[i]
             c.scores[i].gora = snap.gora[i]
-            for (j in 0..2)
+            for (j in 0 until n)
                 if (i != j) c.scores[i].visty[j] = snap.visty[i][j]
         }
         c.save()
@@ -188,7 +189,10 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
         Text(strings.gameInfo, color = Color.White, fontSize = 13.sp, textAlign = TextAlign.Right,
             modifier = Modifier.offset(x = ux(177.0), y = uy(694.0)).width(ux(285.0)))
 
-        if (st.info.names[st.info.dealer].isNotEmpty()) {
+        val sitOut = st.info.sitOutName
+        if (sitOut != null) {
+            com.an0obIs.pref.ui.game.SitOutBadge(sitOut, ::ux, ::uy)
+        } else if (st.info.names[st.info.dealer].isNotEmpty()) {
             com.an0obIs.pref.ui.game.DealerBadge(st.info.dealer, ::ux, ::uy)
         }
 

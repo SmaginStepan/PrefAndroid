@@ -17,13 +17,14 @@ object RemoteViews {
 
     fun rot(seat: Int, viewer: Int): Int = (seat - viewer + 3) % 3
 
-    /** Port of TableLayout.computeField from one viewer's perspective. */
-    fun buildFieldFor(game: Game, viewer: Int): List<PlacedCard> {
+    /** Port of TableLayout.computeField from one viewer's perspective.
+     *  [spectator]: no hand is "own" (the sitting 4p dealer watches). */
+    fun buildFieldFor(game: Game, viewer: Int, spectator: Boolean = false): List<PlacedCard> {
         val res = mutableListOf<PlacedCard>()
         val deal = game.deal
 
         for (hand in 0 until 3) {
-            val faceUp = hand == viewer || deal.hands[hand].isVisible
+            val faceUp = (!spectator && hand == viewer) || deal.hands[hand].isVisible
             res.addAll(
                 TableLayout.handPlacements(
                     deal.hands[hand].cards,
@@ -65,7 +66,12 @@ object RemoteViews {
         }
 
     /** Port of GameViewModel.buildTableInfo from one viewer's perspective. */
-    fun buildTableInfoFor(game: Game, viewer: Int): TableInfo {
+    fun buildTableInfoFor(
+        game: Game,
+        viewer: Int,
+        watching: Boolean = false,
+        sitOutName: String? = null
+    ): TableInfo {
         fun <T> rotList(src: List<T>): List<T> = List(3) { rel -> src[(rel + viewer) % 3] }
         return TableInfo(
             phase = game.phase,
@@ -80,6 +86,8 @@ object RemoteViews {
             playerToTake = rot(game.playerToTake, viewer),
             playerInTurn = rot(game.playerInTurn, viewer),
             controller = rot(game.turnController(), viewer),
+            watching = watching,
+            sitOutName = sitOutName,
             gameResult = if (game.phase == GamePhase.EndPlay) rotResult(game.getGameResult(), viewer) else null,
             showPrikupBtn1 = false,
             showPrikupBtn2 = false,
@@ -87,22 +95,26 @@ object RemoteViews {
         )
     }
 
-    /** Score standing rotated for one viewer, with the full whist matrix. */
-    fun buildScoresFor(game: Game, viewer: Int): ScoreSnap {
-        fun idx(rel: Int) = (rel + viewer) % 3
-        val sc = game.calc.scores
+    /** Score standing rotated for one viewer, with the full whist matrix.
+     *  Works for 3- and 4-column pulkas; [viewer] indexes the calc's players. */
+    fun buildScoresFrom(calc: Calculation, viewer: Int): ScoreSnap {
+        val n = calc.playersCount
+        fun idx(rel: Int) = (rel + viewer) % n
+        val sc = calc.scores
         return ScoreSnap(
-            names = List(3) { sc[idx(it)].name },
-            pulya = List(3) { sc[idx(it)].pulya },
-            gora = List(3) { sc[idx(it)].gora },
-            visty = List(3) { i ->
-                List(3) { j -> if (i == j) 0 else (sc[idx(i)].visty[idx(j)] ?: 0) }
+            names = List(n) { sc[idx(it)].name },
+            pulya = List(n) { sc[idx(it)].pulya },
+            gora = List(n) { sc[idx(it)].gora },
+            visty = List(n) { i ->
+                List(n) { j -> if (i == j) 0 else (sc[idx(i)].visty[idx(j)] ?: 0) }
             },
-            limit = game.calc.limit,
+            limit = calc.limit,
             // at ScoreView calc.dealer already points at the next deal's dealer
-            dealer = rot(game.calc.dealer, viewer)
+            dealer = (calc.dealer - viewer + n) % n
         )
     }
+
+    fun buildScoresFor(game: Game, viewer: Int): ScoreSnap = buildScoresFrom(game.calc, viewer)
 
     /** What the current actor must answer, by phase. */
     fun buildAsk(game: Game): Ask = when (game.phase) {

@@ -67,6 +67,14 @@ class Game {
     @Transient
     var externalDriver: Boolean = false
 
+    /**
+     * The game plays exactly one deal and then Ends (instead of dealing the
+     * next). Used by 4-player multiplayer, where every deal is a 3-player
+     * game among the non-dealers and the session owns the match.
+     */
+    @Transient
+    var singleDealMode: Boolean = false
+
     class Animation {
         var player: Int = 0
         var card: Card? = null
@@ -786,7 +794,10 @@ class Game {
     private fun scoreNext() {
         if (playersToWait == 0) {
             // Все посмотрели счёт
-            if (!calc.isFinished) {
+            if (singleDealMode) {
+                // 4-player match: the session owns the deal cycle
+                phase = GamePhase.Ended
+            } else if (!calc.isFinished) {
                 // Новый розыгрыш
                 newDeal()
             } else {

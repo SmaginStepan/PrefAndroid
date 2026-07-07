@@ -49,7 +49,7 @@ import com.an0obIs.pref.model.ScoreValueType
 import com.an0obIs.pref.ui.AccentGold
 
 // Cell geometry in the original 480x550 canvas units.
-private data class Cell(
+internal data class Cell(
     val type: ScoreValueType,
     val player: Int,
     val refPlayer: Int,
@@ -59,11 +59,11 @@ private data class Cell(
     val align: TextAlign = TextAlign.Center
 )
 
-private data class NameLabel(val player: Int, val x: Double, val y: Double, val w: Double, val align: TextAlign)
-private data class DealerArrow(val player: Int, val x: Double, val y: Double, val up: Boolean)
-private data class SheetLine(val x1: Double, val y1: Double, val x2: Double, val y2: Double)
+internal data class NameLabel(val player: Int, val x: Double, val y: Double, val w: Double, val align: TextAlign)
+internal data class DealerArrow(val player: Int, val x: Double, val y: Double, val up: Boolean)
+internal data class SheetLine(val x1: Double, val y1: Double, val x2: Double, val y2: Double)
 
-private val CELLS_3 = listOf(
+internal val CELLS_3 = listOf(
     Cell(ScoreValueType.Visty, 1, 0, 0.0, 362.0, 71.0),
     Cell(ScoreValueType.Visty, 1, 2, 0.0, 119.0, 71.0),
     Cell(ScoreValueType.Pulya, 1, 0, 83.0, 320.0, 57.0),
@@ -78,19 +78,19 @@ private val CELLS_3 = listOf(
     Cell(ScoreValueType.Visty, 2, 1, 396.0, 119.0, 80.0)
 )
 
-private val NAMES_3 = listOf(
+internal val NAMES_3 = listOf(
     NameLabel(0, 83.0, 536.0, 320.0, TextAlign.Center),
     NameLabel(1, 0.0, 17.0, 214.0, TextAlign.Left),
     NameLabel(2, 283.0, 17.0, 186.0, TextAlign.Right)
 )
 
-private val ARROWS_3 = listOf(
+internal val ARROWS_3 = listOf(
     DealerArrow(0, 209.0, 510.0, up = false),
     DealerArrow(1, 7.0, 43.0, up = true),
     DealerArrow(2, 404.0, 43.0, up = true)
 )
 
-private val LINES_3: List<SheetLine> = run {
+internal val LINES_3: List<SheetLine> = run {
     val s1 = 0.15; val s2 = 0.30; val s3 = 0.45
     val e1 = 0.85; val e2 = 0.70; val e3 = 0.55
     listOf(
@@ -109,7 +109,7 @@ private val LINES_3: List<SheetLine> = run {
     )
 }
 
-private val CELLS_4 = listOf(
+internal val CELLS_4 = listOf(
     Cell(ScoreValueType.Visty, 1, 0, 0.0, 410.0, 71.0),
     Cell(ScoreValueType.Visty, 1, 2, 0.0, 91.0, 71.0),
     Cell(ScoreValueType.Visty, 1, 3, 0.0, 266.0, 71.0),
@@ -132,21 +132,21 @@ private val CELLS_4 = listOf(
     Cell(ScoreValueType.Visty, 2, 3, 323.0, 17.0, 83.0)
 )
 
-private val NAMES_4 = listOf(
+internal val NAMES_4 = listOf(
     NameLabel(0, 187.0, 362.0, 112.0, TextAlign.Center),
     NameLabel(1, 72.0, 263.0, 133.0, TextAlign.Center),
     NameLabel(2, 187.0, 164.0, 118.0, TextAlign.Center),
     NameLabel(3, 280.0, 264.0, 137.0, TextAlign.Center)
 )
 
-private val ARROWS_4 = listOf(
+internal val ARROWS_4 = listOf(
     DealerArrow(0, 210.0, 376.0, up = true),
     DealerArrow(1, 126.0, 284.0, up = true),
     DealerArrow(2, 211.0, 134.0, up = false),
     DealerArrow(3, 296.0, 239.0, up = false)
 )
 
-private val LINES_4: List<SheetLine> = run {
+internal val LINES_4: List<SheetLine> = run {
     val s1 = 0.15; val s2 = 0.25; val s3 = 0.45
     val e1 = 0.85; val e2 = 0.75; val e3 = 0.55
     listOf(
@@ -175,8 +175,8 @@ private val LINES_4: List<SheetLine> = run {
     )
 }
 
-private const val SHEET_W = 480.0
-private const val SHEET_H = 550.0
+internal const val SHEET_W = 480.0
+internal const val SHEET_H = 550.0
 
 private fun cellValue(calc: Calculation, cell: Cell): String = when (cell.type) {
     ScoreValueType.Gora -> calc.scores[cell.player].gora.toString()

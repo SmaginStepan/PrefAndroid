@@ -70,10 +70,7 @@ fun MultiplayerScreen(onBack: () -> Unit) {
     val room = vm.currentRoom
     when {
         room == null -> LobbyView(vm)
-        // live game (3-player only until the 4p engine mode lands;
-        // started 4-seat rooms keep the RoomView with its stub note)
-        vm.started && room.maxSeats == 3 ->
-            if (vm.isHost) MpHostScreen(vm, room) else MpGuestScreen(vm)
+        vm.started -> if (vm.isHost) MpHostScreen(vm, room) else MpGuestScreen(vm)
         else -> RoomView(vm, room, onBack)
     }
 
@@ -94,8 +91,8 @@ private fun MpHostScreen(lobbyVm: LobbyViewModel, room: RoomInfo) {
     val app = androidx.compose.ui.platform.LocalContext.current.applicationContext
             as com.an0obIs.pref.PrefApp
     val config = remember(room.id) {
-        val names = (0 until 3).map { i -> room.seats.getOrNull(i)?.name ?: "?" }
-        val kinds = (0 until 3).map { i ->
+        val names = (0 until room.maxSeats).map { i -> room.seats.getOrNull(i)?.name ?: "?" }
+        val kinds = (0 until room.maxSeats).map { i ->
             val seat = room.seats.getOrNull(i)
             when {
                 i == 0 -> com.an0obIs.pref.mp.SeatKind.LOCAL
@@ -409,9 +406,9 @@ private fun RoomView(vm: LobbyViewModel, room: RoomInfo, onBack: () -> Unit) {
             )
         }
 
-        // resume from a saved pulka (3-player games only)
+        // resume from a saved pulka with the same number of players
         var showPicker by remember { mutableStateOf(false) }
-        if (vm.isHost && !vm.started && room.maxSeats == 3) {
+        if (vm.isHost && !vm.started) {
             val loaded = vm.loadedCalc
             if (loaded == null) {
                 OutlinedButton(
@@ -447,6 +444,7 @@ private fun RoomView(vm: LobbyViewModel, room: RoomInfo, onBack: () -> Unit) {
         }
         if (showPicker) {
             LoadScoresDialog(
+                playersCount = room.maxSeats,
                 onDismiss = { showPicker = false },
                 onLoad = { calc ->
                     vm.loadedCalc = calc
@@ -483,15 +481,16 @@ private fun RoomView(vm: LobbyViewModel, room: RoomInfo, onBack: () -> Unit) {
     }
 }
 
-/** Pick a saved 3-player pulka (same files the score calculator writes). */
+/** Pick a saved pulka (same files the score calculator writes). */
 @Composable
 private fun LoadScoresDialog(
+    playersCount: Int,
     onDismiss: () -> Unit,
     onLoad: (com.an0obIs.pref.model.Calculation) -> Unit
 ) {
     val calcs = remember {
         com.an0obIs.pref.model.CalcList().also { it.load() }.calcs
-            .filter { it.playersCount == 3 }
+            .filter { it.playersCount == playersCount }
             .mapNotNull { entry ->
                 try {
                     com.an0obIs.pref.model.Calculation.load(entry.created, entry.playersCount, entry.limit)
