@@ -38,7 +38,8 @@ class HostGameSession(
     fun pump() {
         while (game.phase != GamePhase.Ended) {
             game.animations.clear() // multiplayer sends state snapshots instead
-            when (seats[game.playerInTurn]) {
+            // in an open game the whister moves for the passing player
+            when (seats[game.turnController()]) {
                 SeatKind.BOT -> {
                     try {
                         AI.makeMove(game)
@@ -79,7 +80,7 @@ class HostGameSession(
         val withScores = ended || game.phase == GamePhase.ScoreView
         for (seat in seats.indices) {
             if (seats[seat] != SeatKind.REMOTE) continue
-            val yourTurn = !ended && game.playerInTurn == seat
+            val yourTurn = !ended && game.turnController() == seat
             val fieldFor = RemoteViews.buildFieldFor(game, seat)
                 .let { f -> if (seat in trickConfirmed) f.filter { !it.isInPlay } else f }
             sendToSeat(
@@ -100,7 +101,7 @@ class HostGameSession(
     /** Apply a remote player's answer. Ignores messages from the wrong seat. */
     fun onRemoteAct(seat: Int, act: GameMsg.Act) {
         if (seats.getOrNull(seat) != SeatKind.REMOTE) return
-        if (game.phase == GamePhase.Ended || game.playerInTurn != seat) return
+        if (game.phase == GamePhase.Ended || game.turnController() != seat) return
 
         var ok = true
         when (game.phase) {

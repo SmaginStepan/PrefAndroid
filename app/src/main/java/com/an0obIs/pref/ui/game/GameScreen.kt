@@ -11,7 +11,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -89,10 +88,10 @@ internal data class TableStrings(
 /** Port of DrawField's text section. Shared with the multiplayer guest screen. */
 internal fun buildTableStrings(ctx: Context, info: TableInfo, mp: Boolean = false): TableStrings {
     val base = buildTableStringsInner(ctx, info)
-    // In multiplayer, action hints belong only to the player in turn; everyone
-    // else sees whose move the table is waiting for.
-    if (mp && info.playerInTurn != 0 && info.phase != GamePhase.Ended) {
-        return base.copy(hint = ctx.getString(R.string.mp_waiting_for, info.names[info.playerInTurn]))
+    // In multiplayer, action hints belong only to the player who controls the
+    // turn; everyone else sees whose move the table is waiting for.
+    if (mp && info.controller != 0 && info.phase != GamePhase.Ended) {
+        return base.copy(hint = ctx.getString(R.string.mp_waiting_for, info.names[info.controller]))
     }
     return base
 }
@@ -518,8 +517,10 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
                 .padding(6.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            OutlinedButton(onClick = { vm.requestAdvice() }) {
-                Text(stringResource(R.string.game_btn_hint), fontSize = 12.sp, color = Color.White)
+            if (!vm.hosted) {
+                OutlinedButton(onClick = { vm.requestAdvice() }) {
+                    Text(stringResource(R.string.game_btn_hint), fontSize = 12.sp, color = Color.White)
+                }
             }
             if (info.showTricksBtn) {
                 OutlinedButton(onClick = { vm.openTricks() }) {
@@ -532,10 +533,7 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
         vm.scoresOverlay?.let { snap ->
             ScoreOverlay(
                 snap = snap,
-                modifier = Modifier
-                    .offset(x = ux(25.0), y = uy(100.0))
-                    .width(ux(430.0))
-                    .aspectRatio(480f / 550f),
+                modifier = Modifier.fillMaxSize(),
                 onTap = { vm.onCanvasTap() }
             )
         }

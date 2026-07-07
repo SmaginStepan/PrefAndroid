@@ -141,6 +141,23 @@ class Game {
             return true // Если игрок спасовал, то он не ходит сам
         return false
     }
+
+    /**
+     * Who decides the current move. Normally the player in turn, but in an
+     * open normal game the whister also plays the passing player's cards
+     * (same rule isAI() applies in single player; hosted multiplayer needs
+     * it explicitly because externalDriver disables isAI()).
+     */
+    fun turnController(): Int {
+        if (phase == GamePhase.Playing && currentGameType == GameType.Normal &&
+            playerInTurn != contractor && isOpened && isVister[playerInTurn] != true
+        ) {
+            val whister = isVister.entries.firstOrNull { it.value }?.key
+            if (whister != null)
+                return whister
+        }
+        return playerInTurn
+    }
     //endregion
 
     //region Начало игры

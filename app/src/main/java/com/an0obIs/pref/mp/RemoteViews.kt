@@ -79,6 +79,7 @@ object RemoteViews {
             maxBid = game.maxBid,
             playerToTake = rot(game.playerToTake, viewer),
             playerInTurn = rot(game.playerInTurn, viewer),
+            controller = rot(game.turnController(), viewer),
             gameResult = if (game.phase == GamePhase.EndPlay) rotResult(game.getGameResult(), viewer) else null,
             showPrikupBtn1 = false,
             showPrikupBtn2 = false,

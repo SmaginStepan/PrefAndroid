@@ -42,6 +42,8 @@ data class TableInfo(
     val maxBid: Game.Bid? = null,
     val playerToTake: Int = 0,
     val playerInTurn: Int = 0,
+    /** who acts now; differs from playerInTurn when the whister moves for the passer */
+    val controller: Int = 0,
     val gameResult: Calculation.GameResult? = null,
     val showPrikupBtn1: Boolean = false,
     val showPrikupBtn2: Boolean = false,
@@ -208,6 +210,7 @@ class GameViewModel : ViewModel() {
         maxBid = game.maxBid,
         playerToTake = game.playerToTake,
         playerInTurn = game.playerInTurn,
+        controller = game.turnController(),
         gameResult = if (game.phase == GamePhase.EndPlay) game.getGameResult() else null,
         showPrikupBtn1 = (game.phase == GamePhase.Playing || game.phase == GamePhase.EndTurn)
                 && (game.currentGameType == GameType.Normal || game.currentGameType == GameType.Miser)
@@ -337,9 +340,10 @@ class GameViewModel : ViewModel() {
         }
     }
 
-    /** In hosted games the local player may only act on their own turn. */
+    /** In hosted games the local player may only act on turns they control
+     *  (their own, or the passer's when whisting an open game). */
     private val localTurnAllowed: Boolean
-        get() = !hosted || game.playerInTurn == 0
+        get() = !hosted || game.turnController() == 0
 
     /** Port of Draw()'s menu construction. */
     private fun buildMenu() {
@@ -543,7 +547,7 @@ class GameViewModel : ViewModel() {
 
     /** Port of btnHint_Tap — runs the AI on behalf of the player (may take a moment). */
     fun requestAdvice() {
-        if (busy || !localTurnAllowed) return
+        if (busy || hosted || !localTurnAllowed) return
         viewModelScope.launch {
             busy = true
             thinking = true
@@ -586,7 +590,9 @@ class GameViewModel : ViewModel() {
     fun openTricks() {
         if (busy) return
         val ai = game.aIs[game.playerInTurn] ?: return
-        tricks = ai.outOfPlay.toList()
+        // until the deal's play is over only the last trick may be reviewed
+        val all = ai.outOfPlay.toList()
+        tricks = if (game.deal.totalTaken < 10) all.takeLast(1) else all
         tricksNames = mapOf(
             -1 to game.calc.scores[game.getPrevPlayer()].name,
             0 to game.calc.scores[game.playerInTurn].name,

@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -140,10 +139,14 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
                         indication = null
                     ) {
                         val card = pc.card ?: return@clickable
-                        if (pc.hand != 0 || pc.isInPlay || pc.isPrikup) return@clickable
+                        if (pc.isInPlay || pc.isPrikup) return@clickable
                         when (ask?.kind) {
-                            "play" -> act(GameMsg.Act(play = card))
-                            "discard" -> {
+                            // own cards, or the passer's when whisting an open
+                            // game (the host lists them in ask.allowed)
+                            "play" -> if (pc.hand == 0 ||
+                                ask.allowed?.any { it.id == card.id } == true
+                            ) act(GameMsg.Act(play = card))
+                            "discard" -> if (pc.hand == 0) {
                                 val existing = vm.discardSel.firstOrNull { it.id == card.id }
                                 if (existing != null) vm.discardSel.remove(existing)
                                 else if (vm.discardSel.size < 2) vm.discardSel.add(card)
@@ -179,10 +182,7 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
         st.scores?.let { snap ->
             com.an0obIs.pref.ui.game.ScoreOverlay(
                 snap = snap,
-                modifier = Modifier
-                    .offset(x = ux(25.0), y = uy(100.0))
-                    .width(ux(430.0))
-                    .aspectRatio(480f / 550f),
+                modifier = Modifier.fillMaxSize(),
                 onTap = { if (ask?.kind == "confirm") act(GameMsg.Act(confirm = true)) }
             )
         }
