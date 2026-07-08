@@ -204,6 +204,7 @@
     <string name="about_f2">- Modo de juego contra el dispositivo</string>
     <string name="about_f3">- Hoja de puntuación con cálculo de whists</string>
     <string name="about_f4">- Curso de aprendizaje y glosario de Preferans</string>
+    <string name="about_f5">- Multijugador en línea con amigos mediante el servidor Preferans</string>
     <string name="about_privacy">Política de privacidad</string>
     <string name="about_support">Soporte</string>
 

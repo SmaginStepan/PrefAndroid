@@ -204,6 +204,7 @@
     <string name="about_f2">- Режим игры против устройства</string>
     <string name="about_f3">- Режим записи пули и расчёт вистов</string>
     <string name="about_f4">- Обучающий курс и справочник по игре преферанс</string>
+    <string name="about_f5">- Сетевая игра с друзьями через сервер Preferans</string>
     <string name="about_privacy">Политика конфиденциальности</string>
     <string name="about_support">Поддержка</string>
 

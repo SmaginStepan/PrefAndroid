@@ -204,6 +204,7 @@
     <string name="about_f2">- Play against the device</string>
     <string name="about_f3">- Score sheet mode with whist calculation</string>
     <string name="about_f4">- Tutorial course and glossary of Preferans</string>
+    <string name="about_f5">- Online multiplayer with friends through the Preferans relay server</string>
     <string name="about_privacy">Privacy Policy</string>
     <string name="about_support">Support</string>
 
