@@ -198,13 +198,14 @@
     <string name="about_author">Автор: Степан Смагин</string>
     <string name="about_designer">Дизайнер: Анна Желнина</string>
     <string name="about_version">Версия: %s</string>
-    <string name="about_support">Поддержка:</string>
     <string name="about_desc">Игра в преферанс.</string>
     <string name="about_features">Особенности:</string>
     <string name="about_f1">- Поддерживает разнообразные варианты правил и настроек.</string>
     <string name="about_f2">- Режим игры против устройства</string>
     <string name="about_f3">- Режим записи пули и расчёт вистов</string>
     <string name="about_f4">- Обучающий курс и справочник по игре преферанс</string>
+    <string name="about_privacy">Политика конфиденциальности</string>
+    <string name="about_support">Поддержка</string>
 
     <!-- Multiplayer -->
     <string name="mp_menu">Игра по сети</string>
