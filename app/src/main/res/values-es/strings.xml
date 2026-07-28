@@ -214,7 +214,7 @@
     <string name="mp_title">En línea</string>
     <string name="mp_connecting">Conectando…</string>
     <string name="mp_disconnected">Sin conexión — reintentando…</string>
-    <string name="mp_no_rooms">No hay partidas abiertas. ¡Crea una!</string>
+    <string name="mp_no_rooms">Aún no hay partidas abiertas. Crea una y comparte el código de sala con tus amigos: verán tu partida en esta lista. Los asientos libres siempre se pueden completar con bots. Se necesita conexión a internet.</string>
     <string name="mp_create">Crear partida</string>
     <string name="mp_players_fmt">%1$d/%2$d jugadores</string>
     <string name="mp_host_fmt">anfitrión: %s</string>
@@ -231,6 +231,12 @@
     <string name="mp_add_bot">Añadir bot</string>
     <string name="mp_you_deal">Repartes esta mano. Turno de %1$s</string>
     <string name="mp_save_finish">Terminar…</string>
+    <string name="default_player_name">Jugador</string>
+    <string name="game_btn_score">Pulka</string>
+    <string name="learn_exit_q">¿Salir del tutorial? La posición no se guardará.</string>
+    <string name="learn_exit_yes">Salir</string>
+    <string name="mp_tap_to_copy">Código de sala: toca para copiar</string>
+    <string name="mp_code_copied">¡Copiado!</string>
     <string name="mp_load_scores">Cargar puntuación guardada</string>
     <string name="mp_scores_loaded_fmt">Continuar puntuación del %1$s</string>
     <string name="mp_clear">Quitar</string>

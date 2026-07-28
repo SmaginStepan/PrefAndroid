@@ -248,6 +248,7 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
 
     val ai1 = stringResource(R.string.ai_name_1)
     val ai2 = stringResource(R.string.ai_name_2)
+    val defaultPlayer = stringResource(R.string.default_player_name)
     LaunchedEffect(Unit) {
         vm.onShowScore = onShowScore
         if (hostedConfig != null) {
@@ -256,7 +257,7 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
                 hostedConfig.initialCalc, hostedConfig.rules, hostedConfig.limit
             )
         } else {
-            vm.start(app, ai1, ai2)
+            vm.start(app, ai1, ai2, defaultPlayer)
         }
     }
     if (hostedConfig != null) {
@@ -581,6 +582,22 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
                 OutlinedButton(onClick = { vm.openTricks() }) {
                     Text(stringResource(R.string.game_btn_tricks), fontSize = 12.sp, color = Color.White)
                 }
+            }
+            if (info.phase != GamePhase.NotStarted && vm.scoresOverlay == null) {
+                OutlinedButton(onClick = { vm.toggleScorePeek() }) {
+                    Text(stringResource(R.string.game_btn_score), fontSize = 12.sp, color = Color.White)
+                }
+            }
+        }
+
+        // In-table pulka peek: current standings, tap to dismiss
+        vm.scorePeek?.let { snap ->
+            if (vm.scoresOverlay == null) {
+                ScoreOverlay(
+                    snap = snap,
+                    modifier = Modifier.fillMaxSize(),
+                    onTap = { vm.toggleScorePeek() }
+                )
             }
         }
 

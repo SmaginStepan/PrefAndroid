@@ -258,17 +258,37 @@ class GameViewModel : ViewModel() {
         }
     }
 
-    fun start(app: PrefApp, ai1Name: String, ai2Name: String) {
+    fun start(app: PrefApp, ai1Name: String, ai2Name: String, playerName: String) {
         this.app = app
         if (!started) {
             game = app.game ?: Game.create(ai1Name, ai2Name).also { app.game = it }
             app.game = game
             started = true
-            refresh()
         }
+        // Names that were never customized follow the app language, even for a
+        // game saved under another locale (QA M-01).
+        if (com.an0obIs.pref.model.AppSettings.isDefaultName(game.calc.scores[0].name))
+            game.calc.scores[0].name = playerName
+        if (game.calc.scores[1].name in AI1_DEFAULTS) game.calc.scores[1].name = ai1Name
+        if (game.calc.scores[2].name in AI2_DEFAULTS) game.calc.scores[2].name = ai2Name
+        refresh()
         // The original page always kicked the game loop on navigation (including
         // returning from the score sheet).
         gameNext()
+    }
+
+    private companion object {
+        val AI1_DEFAULTS = setOf("Первый", "West", "Oeste")
+        val AI2_DEFAULTS = setOf("Второй", "East", "Este")
+    }
+
+    /** In-table pulka peek (QA S-02): current standings over the live calc. */
+    var scorePeek by mutableStateOf<ScoreSnap?>(null)
+        private set
+
+    fun toggleScorePeek() {
+        scorePeek = if (scorePeek != null) null
+        else RemoteViews.buildScoresFrom(session?.matchCalc ?: game.calc, 0)
     }
 
     private fun buildTableInfo(): TableInfo = TableInfo(

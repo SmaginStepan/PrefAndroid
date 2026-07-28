@@ -63,7 +63,17 @@ class AppSettings {
             return data.playerId
         }
 
+    /** True while the user never typed their own name. */
+    val isDefaultPlayerName: Boolean
+        get() = isDefaultName(data.playerName)
+
     companion object {
         private const val FILE_NAME = "settings.json"
+
+        // Per-locale placeholder names; treated as "not customized" so the
+        // display can follow the app language (QA M-01).
+        private val DEFAULT_NAMES = setOf("", "Игрок", "Player", "Jugador")
+
+        fun isDefaultName(name: String) = name.trim() in DEFAULT_NAMES
     }
 }

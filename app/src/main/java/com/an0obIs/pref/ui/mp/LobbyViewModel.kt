@@ -78,7 +78,8 @@ class LobbyViewModel : ViewModel() {
         if (startedOnce) return
         startedOnce = true
         val settings = AppSettings()
-        myName = settings.playerName
+        // blank = never customized; the UI substitutes the localized default
+        myName = if (settings.isDefaultPlayerName) "" else settings.playerName
 
         viewModelScope.launch {
             client.state.collect { conn = it }

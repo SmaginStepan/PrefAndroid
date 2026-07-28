@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -60,6 +61,26 @@ fun LearningScreen(onFinished: () -> Unit) {
     val ctx = LocalContext.current
     val stages = remember { loadCourse(ctx, "tutorial") }
     var position by remember { mutableIntStateOf(1) }
+
+    // Confirm accidental system-back once the course is underway (QA S-03)
+    var showExit by remember { mutableStateOf(false) }
+    androidx.activity.compose.BackHandler(enabled = position > 1) { showExit = true }
+    if (showExit) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showExit = false },
+            text = { Text(stringResource(R.string.learn_exit_q)) },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = { showExit = false; onFinished() }) {
+                    Text(stringResource(R.string.learn_exit_yes))
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { showExit = false }) {
+                    Text(stringResource(R.string.close))
+                }
+            }
+        )
+    }
 
     Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
         Text(

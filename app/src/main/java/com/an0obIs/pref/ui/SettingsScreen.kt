@@ -89,7 +89,12 @@ fun SettingsScreen(
     var language by remember {
         mutableStateOf(AppCompatDelegate.getApplicationLocales().toLanguageTags().substringBefore(',').substringBefore('-'))
     }
-    var playerName by remember { mutableStateOf(settings?.playerName ?: "") }
+    val defaultPlayerName = stringResource(R.string.default_player_name)
+    var playerName by remember {
+        mutableStateOf(settings?.let {
+            if (it.isDefaultPlayerName) defaultPlayerName else it.playerName
+        } ?: "")
+    }
     var limitText by remember { mutableStateOf((settings?.limit ?: 40).toString()) }
     var gameType by remember { mutableStateOf(sourceRules.gameType) }
     var raspProgression by remember { mutableStateOf(sourceRules.raspasyProgression) }

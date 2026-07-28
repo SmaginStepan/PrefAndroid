@@ -30,6 +30,20 @@ import com.an0obIs.pref.model.HighScoresTable
 import com.an0obIs.pref.ui.AccentGold
 import java.text.DecimalFormat
 
+// The seeded leaderboard names are stored in Russian; outside the Russian
+// locale they are shown transliterated (QA M-02).
+private val SEEDED_NAME_TRANSLIT = mapOf(
+    "Эйнштейн" to "Einstein",
+    "Да Винчи" to "Da Vinci",
+    "Перельман" to "Perelman",
+    "Вован" to "Vovan",
+    "Настасья" to "Nastasya",
+    "Алексей" to "Alexey",
+    "Андрей" to "Andrey",
+    "Григорий" to "Grigory",
+    "Ирина" to "Irina"
+)
+
 /** Port of HighScores.xaml.cs. */
 @Composable
 fun HighScoresScreen(app: PrefApp, playerScore: Double?, onToMenu: () -> Unit) {
@@ -38,7 +52,12 @@ fun HighScoresScreen(app: PrefApp, playerScore: Double?, onToMenu: () -> Unit) {
     var showNewRecord by remember {
         mutableStateOf(playerScore != null && table.minScore < playerScore)
     }
-    var playerName by remember { mutableStateOf(AppSettings().playerName) }
+    val defaultName = stringResource(R.string.default_player_name)
+    var playerName by remember {
+        mutableStateOf(AppSettings().let { if (it.isDefaultPlayerName) defaultName else it.playerName })
+    }
+    val isRussian = androidx.compose.ui.platform.LocalContext.current
+        .resources.configuration.locales[0].language == "ru"
     val fmt = remember { DecimalFormat("0.#") }
 
     Column(
@@ -83,7 +102,8 @@ fun HighScoresScreen(app: PrefApp, playerScore: Double?, onToMenu: () -> Unit) {
                     .padding(vertical = 4.dp)
             ) {
                 Text(
-                    text = score.playerName,
+                    text = if (isRussian) score.playerName
+                    else SEEDED_NAME_TRANSLIT[score.playerName] ?: score.playerName,
                     fontSize = 22.sp,
                     color = if (score.lastAdded) Color(0xFFFFEB3B) else Color.Gray,
                     modifier = Modifier.weight(1f)

@@ -223,7 +223,7 @@ private fun LobbyView(vm: LobbyViewModel) {
 
     if (showCreate) {
         CreateRoomDialog(
-            defaultPlayerName = vm.myName,
+            defaultPlayerName = vm.myName.ifBlank { stringResource(R.string.default_player_name) },
             onDismiss = { showCreate = false },
             onCreate = { playerName, name, seats, password, preset, limit ->
                 vm.createRoom(playerName, name, seats, password, preset, limit)
@@ -233,7 +233,8 @@ private fun LobbyView(vm: LobbyViewModel) {
     }
 
     joinFor?.let { r ->
-        var playerName by remember(r.id) { mutableStateOf(vm.myName) }
+        val fallbackName = stringResource(R.string.default_player_name)
+        var playerName by remember(r.id) { mutableStateOf(vm.myName.ifBlank { fallbackName }) }
         var pwd by remember(r.id) { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { joinFor = null },
@@ -368,11 +369,32 @@ private fun CreateRoomDialog(
 private fun RoomView(vm: LobbyViewModel, room: RoomInfo, onBack: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
         Text(text = room.name, fontSize = 32.sp, color = AccentGold)
+        // Prominent, copyable room code (QA S-04)
+        val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
+        var codeCopied by remember(room.id) { mutableStateOf(false) }
         Text(
-            text = stringResource(R.string.mp_room_code_fmt, room.id) + "  ·  " + rulesSummary(vm, room),
+            text = room.id,
+            fontSize = 44.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = androidx.compose.ui.unit.TextUnit(6f, androidx.compose.ui.unit.TextUnitType.Sp),
+            color = AccentGold,
+            modifier = Modifier
+                .padding(top = 4.dp)
+                .clickable {
+                    clipboard.setText(androidx.compose.ui.text.AnnotatedString(room.id))
+                    codeCopied = true
+                }
+        )
+        Text(
+            text = stringResource(if (codeCopied) R.string.mp_code_copied else R.string.mp_tap_to_copy),
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+        )
+        Text(
+            text = rulesSummary(vm, room),
             fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.padding(top = 6.dp, bottom = 16.dp)
         )
 
         for (i in 0 until room.maxSeats) {
