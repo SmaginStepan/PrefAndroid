@@ -83,6 +83,15 @@ class HostGameSession(
     private fun humanSeats(): List<Int> =
         seats.indices.filter { seats[it] != SeatKind.BOT }
 
+    /** The real seat whose own action produced the stop — no confirm needed:
+     *  the last card of the trick, or the contractor at the opened prikup. */
+    private fun stopMover(): Int = when (game.phase) {
+        // after the closing card, playCard advanced playerInTurn one step back
+        GamePhase.EndTurn -> dealMap.getOrElse((game.playerInTurn + 1) % 3) { -1 }
+        GamePhase.PrikupOpened -> dealMap.getOrElse(game.contractor) { -1 }
+        else -> -1
+    }
+
     private fun currentStopId(): String? {
         val phase = game.phase
         if (phase !in confirmPhases) return null
@@ -254,6 +263,8 @@ class HostGameSession(
                 if (stopId != id) {
                     stopId = id
                     stopConfirmed.clear()
+                    // whoever made the move that produced this stop saw it happen
+                    stopMover().takeIf { it >= 0 }?.let { stopConfirmed.add(it) }
                     stopKey++
                 }
                 if (humanSeats().all { it in stopConfirmed }) {
