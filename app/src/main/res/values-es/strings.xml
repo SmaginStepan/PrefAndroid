@@ -241,6 +241,8 @@
     <string name="mp_auto_confirm">Autocontinuar confirmaciones:</string>
     <string name="mp_auto_off">No</string>
     <string name="mp_auto_sec_fmt">%1$d s</string>
+    <string name="mp_reconnecting_fmt">Reconectando: %1$s…</string>
+    <string name="mp_err_host_lost">Se perdió la conexión con el anfitrión: la sala se cerró.</string>
     <string name="mp_load_scores">Cargar puntuación guardada</string>
     <string name="mp_scores_loaded_fmt">Continuar puntuación del %1$s</string>
     <string name="mp_clear">Quitar</string>

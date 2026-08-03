@@ -133,9 +133,15 @@ class LobbyViewModel : ViewModel() {
                 currentRoom = null; mySeat = null; started = false; loadedCalc = null; notice = "kicked"
             }
             is ServerMsg.RoomClosed -> {
-                currentRoom = null; mySeat = null; started = false; loadedCalc = null; notice = "room_closed"
+                currentRoom = null; mySeat = null; started = false; loadedCalc = null
+                notice = if (msg.reason == "host_disconnected") "host_disconnected" else "room_closed"
             }
-            is ServerMsg.Error -> notice = msg.code
+            is ServerMsg.Error -> {
+                // transient throttling must not interrupt play with a dialog
+                if (msg.code == "rate_limited")
+                    android.util.Log.w("PrefNet", "rate limited: ${msg.message}")
+                else notice = msg.code
+            }
             is ServerMsg.HostMsg -> hostStates.tryEmit(msg.data)
             is ServerMsg.PlayerMsg -> playerActs.tryEmit(msg.fromSeat to msg.data)
         }

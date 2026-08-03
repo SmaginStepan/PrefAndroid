@@ -241,6 +241,8 @@
     <string name="mp_auto_confirm">Автопродолжение подтверждений:</string>
     <string name="mp_auto_off">Выкл</string>
     <string name="mp_auto_sec_fmt">%1$d с</string>
+    <string name="mp_reconnecting_fmt">Переподключение: %1$s…</string>
+    <string name="mp_err_host_lost">Связь с хостом потеряна — комната закрыта.</string>
     <string name="mp_load_scores">Загрузить пулю</string>
     <string name="mp_scores_loaded_fmt">Продолжение пули от %1$s</string>
     <string name="mp_clear">Убрать</string>

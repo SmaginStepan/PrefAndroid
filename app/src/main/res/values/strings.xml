@@ -241,6 +241,8 @@
     <string name="mp_auto_confirm">Auto-continue confirmations:</string>
     <string name="mp_auto_off">Off</string>
     <string name="mp_auto_sec_fmt">%1$d s</string>
+    <string name="mp_reconnecting_fmt">Reconnecting: %1$s…</string>
+    <string name="mp_err_host_lost">Connection to the host was lost — the room is closed.</string>
     <string name="mp_load_scores">Load saved scores</string>
     <string name="mp_scores_loaded_fmt">Resuming scores from %1$s</string>
     <string name="mp_clear">Remove</string>

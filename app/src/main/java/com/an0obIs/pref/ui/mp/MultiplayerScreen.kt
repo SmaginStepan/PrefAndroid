@@ -1,7 +1,10 @@
 package com.an0obIs.pref.ui.mp
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,10 +51,35 @@ import com.an0obIs.pref.ui.AccentGold
 private fun noticeText(code: String): String = when (code) {
     "kicked" -> stringResource(R.string.mp_err_kicked)
     "room_closed" -> stringResource(R.string.mp_err_room_closed)
+    "host_disconnected" -> stringResource(R.string.mp_err_host_lost)
     "bad_password" -> stringResource(R.string.mp_err_bad_password)
     "room_full" -> stringResource(R.string.mp_err_room_full)
     "playing" -> stringResource(R.string.mp_err_playing)
     else -> stringResource(R.string.mp_err_generic, code)
+}
+
+/** Small top banner while any human seat is offline (disconnect grace). */
+@Composable
+private fun ReconnectBanner(vm: LobbyViewModel) {
+    val room = vm.currentRoom ?: return
+    val offline = room.seats.filterNotNull()
+        .filter { it.kind == "human" && !it.connected }
+        .map { it.name }
+    if (offline.isEmpty()) return
+    androidx.compose.foundation.layout.Box(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        Text(
+            text = stringResource(R.string.mp_reconnecting_fmt, offline.joinToString(", ")),
+            fontSize = 12.sp,
+            color = Color.White,
+            modifier = Modifier
+                .padding(top = 6.dp)
+                .background(Color(0xAA7A2020), RoundedCornerShape(8.dp))
+                .padding(horizontal = 10.dp, vertical = 4.dp)
+        )
+    }
 }
 
 @Composable
@@ -73,7 +101,10 @@ fun MultiplayerScreen(onBack: () -> Unit) {
     val room = vm.currentRoom
     when {
         room == null -> LobbyView(vm)
-        vm.started -> if (vm.isHost) MpHostScreen(vm, room) else MpGuestScreen(vm)
+        vm.started -> androidx.compose.foundation.layout.Box {
+            if (vm.isHost) MpHostScreen(vm, room) else MpGuestScreen(vm)
+            ReconnectBanner(vm)
+        }
         else -> RoomView(vm, room, onBack)
     }
 
