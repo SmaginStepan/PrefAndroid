@@ -122,6 +122,78 @@ class HostGameSessionTest {
         return session to leaks
     }
 
+    /** A mid-game pulka like the save/resume flow produces. */
+    private fun midGamePulka(players: Int): Calculation {
+        val c = Calculation(players, 10)
+        val names = List(players) { "P$it" }
+        for (i in 0 until players) c.scores[i].name = names[i]
+        // a few plausible played deals
+        c.writeGame(Calculation.GameResult().also { r ->
+            r.gameType = com.an0obIs.pref.model.GameType.Normal
+            r.contractor = 0; r.dealer = players - 1; r.contract = 6
+            r.taken = mutableMapOf(0 to 6, 1 to 2, 2 to 2)
+            r.visters = mutableListOf(1, 2)
+        })
+        c.writeGame(Calculation.GameResult().also { r ->
+            r.gameType = com.an0obIs.pref.model.GameType.Raspasy
+            r.dealer = 0
+            r.taken = (0 until minOf(players, 3)).associateWith { if (it == 1) 4 else 3 }.toMutableMap()
+        })
+        return c
+    }
+
+    @Test
+    fun resumedPulkaMatchesFinish() {
+        for (players in listOf(3, 4)) {
+            val loaded = midGamePulka(players)
+            // the app reorders the loaded pulka onto the room seats
+            val calc = loaded.reordered(Calculation.seatOrder(List(players) { "P$it" }, loaded))
+            val names = List(players) { "P$it" }
+            val seats = List(players) { SeatKind.REMOTE }
+            val playersState = List(players) { RemotePlayer() }
+            val pending = ArrayDeque<Pair<Int, GameMsg.State>>()
+            lateinit var session: HostGameSession
+            session = HostGameSession(
+                seats = seats, names = names, matchCalc = calc,
+                sendToSeat = { seat, msg -> pending.addLast(seat to msg) },
+                onLocalTurn = { }
+            )
+            session.start()
+            fun over() = if (players == 4) session.matchEnded
+            else session.game.phase == GamePhase.Ended
+            var steps = 0
+            while (!over() && steps++ < 400_000) {
+                val (seat, st) = pending.removeFirstOrNull() ?: break
+                if (!st.yourTurn) continue
+                val ask = st.ask ?: continue
+                if (st.info.phase == GamePhase.Negotiations && st.info.curentBids.isEmpty())
+                    playersState.forEach { it.hasBidThisDeal = false }
+                val me = playersState[seat]
+                val act: GameMsg.Act? = when (ask.kind) {
+                    "bid" -> {
+                        val bids = ask.bids ?: emptyList()
+                        val real = bids.firstOrNull { !it.pas && !it.miser }
+                        if (!me.hasBidThisDeal && real != null) {
+                            me.hasBidThisDeal = true; GameMsg.Act(bid = real)
+                        } else GameMsg.Act(bid = bids.first { it.pas })
+                    }
+                    "contract" -> GameMsg.Act(contract = ask.bids!!.first())
+                    "vist" -> GameMsg.Act(vist = true)
+                    "opening" -> GameMsg.Act(opening = true)
+                    "discard" -> GameMsg.Act(discard = st.field.filter {
+                        it.hand == 0 && it.card != null && !it.isInPlay && !it.isPrikup
+                    }.map { it.card!! }.take(2))
+                    "play" -> GameMsg.Act(play = ask.allowed!!.first())
+                    "confirm" -> GameMsg.Act(confirm = true)
+                    else -> null
+                }
+                if (act != null) session.onRemoteAct(seat, act)
+            }
+            println("resume players=$players deals=${calc.gameLog.size} steps=$steps ended=${over()}")
+            assertTrue("resumed $players-player match must finish", over())
+        }
+    }
+
     @Test
     fun threeRemotePlayersFinishGamesWithoutLeaks() {
         repeat(3) {

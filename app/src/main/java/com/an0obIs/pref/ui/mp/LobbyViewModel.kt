@@ -52,6 +52,11 @@ class LobbyViewModel : ViewModel() {
     var started by mutableStateOf(false)
         private set
 
+    /** Increments for every freshly started game so the game screens get a
+     *  new ViewModel instead of the previous match's one (stale-state bug). */
+    var gameGeneration by mutableStateOf(0)
+        private set
+
     /** Transient server error / event code; the UI maps it to a localized text. */
     var notice by mutableStateOf<String?>(null)
 
@@ -125,7 +130,12 @@ class LobbyViewModel : ViewModel() {
                         arrangeByPulka()
                 }
             }
-            is ServerMsg.Started -> started = true
+            is ServerMsg.Started -> {
+                // only a real start bumps the generation; the reconnect replay
+                // of "started" must keep the running game's ViewModel
+                if (!started) gameGeneration++
+                started = true
+            }
             is ServerMsg.Left -> {
                 currentRoom = null; mySeat = null; started = false; loadedCalc = null
             }

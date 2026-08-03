@@ -90,7 +90,8 @@ class GuestGameViewModel : ViewModel() {
 /** Thin client: renders the host's per-viewer snapshots and answers Asks. */
 @Composable
 fun MpGuestScreen(lobbyVm: LobbyViewModel) {
-    val vm: GuestGameViewModel = viewModel()
+    // a fresh ViewModel per started game (the previous match's state must not leak)
+    val vm: GuestGameViewModel = viewModel(key = "mp-guest-${lobbyVm.gameGeneration}")
     val ctx = LocalContext.current
     val images = remember { CardImages(ctx.applicationContext) }
 

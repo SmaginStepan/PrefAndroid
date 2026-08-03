@@ -247,8 +247,14 @@ class HostedConfig(
 )
 
 @Composable
-fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig? = null) {
-    val vm: GameViewModel = viewModel()
+fun GameScreen(
+    app: PrefApp,
+    onShowScore: () -> Unit,
+    hostedConfig: HostedConfig? = null,
+    /** distinct key per hosted game so a new match gets a fresh ViewModel */
+    vmKey: String? = null
+) {
+    val vm: GameViewModel = if (vmKey != null) viewModel(key = vmKey) else viewModel()
     val ctx = LocalContext.current
     val images = remember { CardImages(ctx.applicationContext) }
 

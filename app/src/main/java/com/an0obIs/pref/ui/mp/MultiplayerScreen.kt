@@ -3,6 +3,7 @@ package com.an0obIs.pref.ui.mp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Arrangement
@@ -137,7 +138,7 @@ private fun MpHostScreen(lobbyVm: LobbyViewModel, room: RoomInfo) {
             reconnects.tryEmit(Unit)
         prevConnected = now
     }
-    val config = remember(room.id) {
+    val config = remember(room.id, lobbyVm.gameGeneration) {
         val names = (0 until room.maxSeats).map { i -> room.seats.getOrNull(i)?.name ?: "?" }
         val kinds = (0 until room.maxSeats).map { i ->
             val seat = room.seats.getOrNull(i)
@@ -179,7 +180,12 @@ private fun MpHostScreen(lobbyVm: LobbyViewModel, room: RoomInfo) {
             }
         )
     }
-    com.an0obIs.pref.ui.game.GameScreen(app = app, onShowScore = {}, hostedConfig = config)
+    com.an0obIs.pref.ui.game.GameScreen(
+        app = app,
+        onShowScore = {},
+        hostedConfig = config,
+        vmKey = "mp-host-${room.id}-${lobbyVm.gameGeneration}"
+    )
 }
 
 @Composable
@@ -321,13 +327,16 @@ private fun CreateRoomDialog(
     var password by remember { mutableStateOf("") }
     var preset by remember { mutableStateOf(RulesGameType.Sochy) }
     var limitText by remember { mutableStateOf("10") }
-    var autoConfirm by remember { mutableIntStateOf(0) }
+    var autoConfirm by remember { mutableIntStateOf(10) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.mp_create), fontSize = 18.sp) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.verticalScroll(androidx.compose.foundation.rememberScrollState())
+            ) {
                 OutlinedTextField(
                     value = playerName,
                     onValueChange = { playerName = it.take(24) },
@@ -381,18 +390,22 @@ private fun CreateRoomDialog(
                 )
                 // confirmations auto-continue after a pause (never real moves)
                 Text(stringResource(R.string.mp_auto_confirm), fontSize = 14.sp)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    for (v in listOf(0, 5, 10, 30)) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.selectable(selected = autoConfirm == v, onClick = { autoConfirm = v })
-                        ) {
-                            RadioButton(selected = autoConfirm == v, onClick = { autoConfirm = v })
-                            Text(
-                                if (v == 0) stringResource(R.string.mp_auto_off)
-                                else stringResource(R.string.mp_auto_sec_fmt, v),
-                                fontSize = 14.sp
-                            )
+                for (pair in listOf(listOf(0, 5), listOf(10, 30))) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                        for (v in pair) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .selectable(selected = autoConfirm == v, onClick = { autoConfirm = v })
+                            ) {
+                                RadioButton(selected = autoConfirm == v, onClick = { autoConfirm = v })
+                                Text(
+                                    if (v == 0) stringResource(R.string.mp_auto_off)
+                                    else stringResource(R.string.mp_auto_sec_fmt, v),
+                                    fontSize = 14.sp
+                                )
+                            }
                         }
                     }
                 }
