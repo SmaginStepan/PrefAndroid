@@ -1,6 +1,7 @@
 package com.an0obIs.pref.ui.mp
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,8 +14,10 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -120,6 +123,7 @@ private fun MpHostScreen(lobbyVm: LobbyViewModel, room: RoomInfo) {
             initialCalc = lobbyVm.loadedCalc,
             rules = roomRules?.gameRules,
             limit = roomRules?.limit,
+            autoConfirmSec = roomRules?.autoConfirmSec ?: 0,
             reconnects = reconnects,
             onFinished = { lobbyVm.leave() },
             sendToSeat = { seat, state ->
@@ -225,8 +229,8 @@ private fun LobbyView(vm: LobbyViewModel) {
         CreateRoomDialog(
             defaultPlayerName = vm.myName.ifBlank { stringResource(R.string.default_player_name) },
             onDismiss = { showCreate = false },
-            onCreate = { playerName, name, seats, password, preset, limit ->
-                vm.createRoom(playerName, name, seats, password, preset, limit)
+            onCreate = { playerName, name, seats, password, preset, limit, autoConfirm ->
+                vm.createRoom(playerName, name, seats, password, preset, limit, autoConfirm)
                 showCreate = false
             }
         )
@@ -278,7 +282,7 @@ private fun LobbyView(vm: LobbyViewModel) {
 private fun CreateRoomDialog(
     defaultPlayerName: String,
     onDismiss: () -> Unit,
-    onCreate: (playerName: String, name: String, seats: Int, password: String?, preset: RulesGameType, limit: Int) -> Unit
+    onCreate: (playerName: String, name: String, seats: Int, password: String?, preset: RulesGameType, limit: Int, autoConfirmSec: Int) -> Unit
 ) {
     var playerName by remember { mutableStateOf(defaultPlayerName) }
     var name by remember { mutableStateOf(defaultPlayerName) }
@@ -286,6 +290,7 @@ private fun CreateRoomDialog(
     var password by remember { mutableStateOf("") }
     var preset by remember { mutableStateOf(RulesGameType.Sochy) }
     var limitText by remember { mutableStateOf("10") }
+    var autoConfirm by remember { mutableIntStateOf(0) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -343,6 +348,23 @@ private fun CreateRoomDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     label = { Text(stringResource(R.string.sheet_limit_label)) }
                 )
+                // confirmations auto-continue after a pause (never real moves)
+                Text(stringResource(R.string.mp_auto_confirm), fontSize = 14.sp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    for (v in listOf(0, 5, 10, 30)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.selectable(selected = autoConfirm == v, onClick = { autoConfirm = v })
+                        ) {
+                            RadioButton(selected = autoConfirm == v, onClick = { autoConfirm = v })
+                            Text(
+                                if (v == 0) stringResource(R.string.mp_auto_off)
+                                else stringResource(R.string.mp_auto_sec_fmt, v),
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                }
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it.take(32) },
@@ -355,7 +377,7 @@ private fun CreateRoomDialog(
             Button(
                 enabled = name.isNotBlank() && playerName.isNotBlank(),
                 onClick = {
-                    onCreate(playerName.trim(), name.trim(), seats, password, preset, limitText.toIntOrNull() ?: 10)
+                    onCreate(playerName.trim(), name.trim(), seats, password, preset, limitText.toIntOrNull() ?: 10, autoConfirm)
                 }
             ) { Text(stringResource(R.string.mp_create)) }
         },
@@ -399,9 +421,36 @@ private fun RoomView(vm: LobbyViewModel, room: RoomInfo, onBack: () -> Unit) {
 
         for (i in 0 until room.maxSeats) {
             val seat = room.seats.getOrNull(i)
+            val draggable = vm.isHost && !vm.started && i > 0 && seat != null
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp)
+                    .then(
+                        if (draggable)
+                            Modifier.pointerInput(i, room.id) {
+                                // long-press drag swaps with the neighbor row
+                                var acc = 0f
+                                var consumed = false
+                                detectDragGesturesAfterLongPress(
+                                    onDragStart = { acc = 0f; consumed = false },
+                                    onDrag = { change, amount ->
+                                        change.consume()
+                                        acc += amount.y
+                                        if (!consumed) {
+                                            val threshold = 40.dp.toPx()
+                                            if (acc < -threshold && i > 1) {
+                                                vm.swapSeats(i, i - 1); consumed = true
+                                            } else if (acc > threshold && i < room.maxSeats - 1) {
+                                                vm.swapSeats(i, i + 1); consumed = true
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+                        else Modifier
+                    )
             ) {
                 Text(
                     text = when {
@@ -420,7 +469,17 @@ private fun RoomView(vm: LobbyViewModel, room: RoomInfo, onBack: () -> Unit) {
                     else MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.weight(1f)
                 )
-                if (vm.isHost && i > 0 && seat != null && !vm.started) {
+                if (draggable) {
+                    IconButton(onClick = { vm.swapSeats(i, i - 1) }, enabled = i > 1) {
+                        Text("▲", fontSize = 15.sp,
+                            color = if (i > 1) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.25f))
+                    }
+                    IconButton(onClick = { vm.swapSeats(i, i + 1) }, enabled = i < room.maxSeats - 1) {
+                        Text("▼", fontSize = 15.sp,
+                            color = if (i < room.maxSeats - 1) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.25f))
+                    }
                     TextButton(onClick = { vm.kick(i) }) {
                         Text(stringResource(R.string.mp_kick), fontSize = 13.sp)
                     }
@@ -485,6 +544,7 @@ private fun RoomView(vm: LobbyViewModel, room: RoomInfo, onBack: () -> Unit) {
                 onDismiss = { showPicker = false },
                 onLoad = { calc ->
                     vm.loadedCalc = calc
+                    vm.arrangeByPulka() // matched names take their pulka columns
                     showPicker = false
                 }
             )

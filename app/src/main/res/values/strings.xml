@@ -237,6 +237,10 @@
     <string name="learn_exit_yes">Exit</string>
     <string name="mp_tap_to_copy">Room code — tap to copy</string>
     <string name="mp_code_copied">Copied!</string>
+    <string name="mp_waiting_confirm">Waiting for: %1$s</string>
+    <string name="mp_auto_confirm">Auto-continue confirmations:</string>
+    <string name="mp_auto_off">Off</string>
+    <string name="mp_auto_sec_fmt">%1$d s</string>
     <string name="mp_load_scores">Load saved scores</string>
     <string name="mp_scores_loaded_fmt">Resuming scores from %1$s</string>
     <string name="mp_clear">Remove</string>

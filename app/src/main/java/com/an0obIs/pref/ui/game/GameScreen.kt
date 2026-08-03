@@ -88,6 +88,10 @@ internal data class TableStrings(
 /** Port of DrawField's text section. Shared with the multiplayer guest screen. */
 internal fun buildTableStrings(ctx: Context, info: TableInfo, mp: Boolean = false): TableStrings {
     val base = buildTableStringsInner(ctx, info)
+    // Confirmed the current stop: show who everyone is waiting for.
+    if (mp && info.youConfirmed && info.waitingFor.isNotEmpty()) {
+        return base.copy(hint = ctx.getString(R.string.mp_waiting_confirm, info.waitingFor.joinToString(", ")))
+    }
     // The sitting 4-player dealer only watches this deal; during confirm
     // phases the base hint already says "tap to continue".
     if (mp && info.watching && info.phase != GamePhase.Ended) {
@@ -237,7 +241,9 @@ class HostedConfig(
     /** fires when a guest seat reconnects, so the host resends snapshots */
     val reconnects: kotlinx.coroutines.flow.Flow<Unit>? = null,
     /** invoked after the host saves-and-finishes the match */
-    val onFinished: () -> Unit = {}
+    val onFinished: () -> Unit = {},
+    /** confirmations auto-continue after this many seconds (0 = off) */
+    val autoConfirmSec: Int = 0
 )
 
 @Composable
@@ -254,7 +260,8 @@ fun GameScreen(app: PrefApp, onShowScore: () -> Unit, hostedConfig: HostedConfig
         if (hostedConfig != null) {
             vm.startHosted(
                 hostedConfig.names, hostedConfig.seatKinds, hostedConfig.sendToSeat,
-                hostedConfig.initialCalc, hostedConfig.rules, hostedConfig.limit
+                hostedConfig.initialCalc, hostedConfig.rules, hostedConfig.limit,
+                hostedConfig.autoConfirmSec
             )
         } else {
             vm.start(app, ai1, ai2, defaultPlayer)

@@ -48,6 +48,10 @@ data class TableInfo(
     val watching: Boolean = false,
     /** name of the sitting 4-player dealer, shown top-center */
     val sitOutName: String? = null,
+    /** humans still to confirm the current stop (trick/result/score) */
+    val waitingFor: List<String> = emptyList(),
+    /** this viewer already confirmed the current stop */
+    val youConfirmed: Boolean = false,
     val gameResult: Calculation.GameResult? = null,
     val showPrikupBtn1: Boolean = false,
     val showPrikupBtn2: Boolean = false,
@@ -137,11 +141,13 @@ class GameViewModel : ViewModel() {
         sendToSeat: (Int, GameMsg.State) -> Unit,
         initialCalc: Calculation? = null,
         rules: com.an0obIs.pref.model.GameRules? = null,
-        limit: Int? = null
+        limit: Int? = null,
+        autoConfirmSec: Int = 0
     ) {
         if (started) return
         started = true
         hosted = true
+        this.autoConfirmSec = autoConfirmSec
         val n = seatKinds.size
         // resume a saved pulka (its columns seated to match the room players),
         // or a fresh sheet with the room's rules
@@ -306,6 +312,8 @@ class GameViewModel : ViewModel() {
         controller = game.turnController(),
         watching = session?.hostActive == false,
         sitOutName = session?.sitOutName,
+        waitingFor = session?.waitingNames() ?: emptyList(),
+        youConfirmed = session?.hasConfirmed(0) == true,
         gameResult = if (game.phase == GamePhase.EndPlay) game.getGameResult() else null,
         showPrikupBtn1 = (game.phase == GamePhase.Playing || game.phase == GamePhase.EndTurn)
                 && (game.currentGameType == GameType.Normal || game.currentGameType == GameType.Miser)
@@ -340,11 +348,70 @@ class GameViewModel : ViewModel() {
         field = if (trickCollected) f.filter { !it.isInPlay } else f
         pinnedOverlays.clear()
         info = buildTableInfo()
+        // the sheet hides once the host confirmed it; final standings stay
         scoresOverlay = if (hosted && s != null &&
-            (game.phase == GamePhase.ScoreView || game.phase == GamePhase.Ended)
+            ((game.phase == GamePhase.ScoreView && !s.hasConfirmed(0)) ||
+                    game.phase == GamePhase.Ended)
         )
             RemoteViews.buildScoresFrom(s.matchCalc, 0)
         else null
+        armAutoConfirm()
+    }
+
+    // ---- auto-confirm (host option): confirmations only, never real moves ----
+    private var autoConfirmSec = 0
+    private var autoArmedKey = -1L
+    private var autoJob: kotlinx.coroutines.Job? = null
+
+    private fun armAutoConfirm() {
+        val s = session ?: return
+        if (autoConfirmSec <= 0) return
+        if (!s.atConfirmStop) {
+            autoJob?.cancel(); autoJob = null; autoArmedKey = -1
+            return
+        }
+        val key = s.stopKey
+        if (key == autoArmedKey) return
+        autoArmedKey = key
+        autoJob?.cancel()
+        autoJob = viewModelScope.launch {
+            kotlinx.coroutines.delay(autoConfirmSec * 1000L)
+            val anims = withContext(Dispatchers.Default) {
+                mpMutex.withLock {
+                    if (s.stopKey == key && s.atConfirmStop) {
+                        s.confirmAll()
+                        s.drainAnims()
+                    } else emptyList()
+                }
+            }
+            syncHostedGame()
+            if (anims.isNotEmpty()) {
+                busy = true
+                processAnimations(ArrayDeque(anims))
+                busy = false
+            }
+            buildMenu()
+            refresh()
+        }
+    }
+
+    /** The host confirms the current stop (trick, result, prikup or score). */
+    private fun hostedConfirm() {
+        val s = session ?: return
+        viewModelScope.launch {
+            busy = true
+            val anims = withContext(Dispatchers.Default) {
+                mpMutex.withLock {
+                    s.confirmSeat(0)
+                    s.drainAnims()
+                }
+            }
+            syncHostedGame()
+            processAnimations(ArrayDeque(anims))
+            busy = false
+            buildMenu()
+            refresh()
+        }
     }
 
     fun gameNext() {
@@ -558,26 +625,21 @@ class GameViewModel : ViewModel() {
             return
         }
         val s = session
-        if (s != null && !s.hostActive) {
-            // sitting 4-player dealer: taps release the current spectator stop
-            // (prikup, trick, deal result or score sheet)
-            if (s.spectatorAwaiting) {
-                viewModelScope.launch {
-                    busy = true
-                    val anims = withContext(Dispatchers.Default) {
-                        mpMutex.withLock {
-                            s.dealerConfirm()
-                            s.drainAnims()
-                        }
-                    }
-                    syncHostedGame()
-                    processAnimations(ArrayDeque(anims))
-                    busy = false
-                    buildMenu()
-                    refresh()
+        if (s != null) {
+            // hosted: confirmations are order-independent — anyone who hasn't
+            // confirmed the current stop may do so at any time
+            when (game.phase) {
+                GamePhase.PrikupOpened, GamePhase.EndPlay, GamePhase.ScoreView -> {
+                    if (!s.hasConfirmed(0)) hostedConfirm()
+                    return
                 }
+                GamePhase.EndTurn -> {
+                    if (!s.hasConfirmed(0)) hideDeal()
+                    return
+                }
+                else -> {}
             }
-            return
+            if (!s.hostActive) return // sitting dealer only watches the play
         }
         if (!localTurnAllowed) return
         when (game.phase) {
@@ -589,13 +651,6 @@ class GameViewModel : ViewModel() {
             GamePhase.EndPlay -> {
                 game.endConfirm()
                 gameNext()
-            }
-            GamePhase.ScoreView -> {
-                // hosted games treat the score view as a confirm turn
-                if (hosted) {
-                    game.scoreClose()
-                    gameNext()
-                }
             }
             else -> {}
         }
@@ -614,8 +669,13 @@ class GameViewModel : ViewModel() {
             busy = false
             trickCollected = true
             trickCollectedAt = game.deal.totalTaken
-            game.turnClose()
-            gameNext()
+            if (session != null) {
+                // hosted: order-independent confirm; the trick stays for others
+                hostedConfirm()
+            } else {
+                game.turnClose()
+                gameNext()
+            }
         }
     }
 

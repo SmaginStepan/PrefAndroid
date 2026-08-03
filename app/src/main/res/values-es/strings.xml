@@ -237,6 +237,10 @@
     <string name="learn_exit_yes">Salir</string>
     <string name="mp_tap_to_copy">Código de sala: toca para copiar</string>
     <string name="mp_code_copied">¡Copiado!</string>
+    <string name="mp_waiting_confirm">Esperando a: %1$s</string>
+    <string name="mp_auto_confirm">Autocontinuar confirmaciones:</string>
+    <string name="mp_auto_off">No</string>
+    <string name="mp_auto_sec_fmt">%1$d s</string>
     <string name="mp_load_scores">Cargar puntuación guardada</string>
     <string name="mp_scores_loaded_fmt">Continuar puntuación del %1$s</string>
     <string name="mp_clear">Quitar</string>

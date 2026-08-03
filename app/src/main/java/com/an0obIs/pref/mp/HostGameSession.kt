@@ -15,6 +15,14 @@ enum class SeatKind { LOCAL, BOT, REMOTE }
  * stops at EVERY input point; this class dispatches each stop to the seat's
  * driver: the local UI, the built-in AI, or a remote player over the relay.
  *
+ * Confirmation phases (opened prikup, finished trick, deal result, score
+ * sheet) are handled as ORDER-INDEPENDENT stops: every human — including the
+ * 4-player sitting dealer — confirms in any order; once a player confirmed,
+ * their view moves on (trick hidden, score sheet dismissed) and shows who is
+ * still being waited for. The engine's own turn-ordered confirm cycle is
+ * applied in one go when the last human confirms. Only real moves (bids,
+ * whist, discards, cards) stay with the seat that owns them.
+ *
  * 3 seats: [game] runs the whole match on [matchCalc] directly.
  * 4 seats: the dealer sits out; every deal is a fresh single-deal 3-player
  * game among the other three, and this session maps its seats onto the real
@@ -57,27 +65,84 @@ class HostGameSession(
 
     private var pendingResult: Calculation.GameResult? = null
     private var scoreWritten = false
-    private var dealerConfirmed = true
 
-    // A human sitting dealer watches the deal at its own pace: the game holds
-    // at the prikup, after every trick and at the deal result until they tap.
-    private var spectatorSawTrick = -1 // deal.totalTaken value already confirmed
-    private var spectatorSawPrikup = false
-    private var spectatorSawEndPlay = false
+    // ---- order-independent confirm stops -----------------------------------
 
-    private val dealerIsHuman: Boolean
-        get() = four && sittingOut >= 0 && seats[sittingOut] != SeatKind.BOT
+    private val confirmPhases = setOf(
+        GamePhase.PrikupOpened, GamePhase.EndTurn, GamePhase.EndPlay, GamePhase.ScoreView
+    )
 
-    /** The sitting dealer must tap through the current mid-deal stop. */
-    private fun spectatorHold(): Boolean {
-        if (!dealerIsHuman) return false
-        return when (game.phase) {
-            GamePhase.PrikupOpened -> !spectatorSawPrikup
-            GamePhase.EndTurn -> spectatorSawTrick != game.deal.totalTaken
-            GamePhase.EndPlay -> !spectatorSawEndPlay
-            else -> false
-        }
+    /** Real seats that confirmed the current stop. */
+    private val stopConfirmed = mutableSetOf<Int>()
+    private var stopId: String? = null
+
+    /** Bumped whenever a new stop begins; used by the auto-confirm timer. */
+    var stopKey = 0L
+        private set
+
+    private fun humanSeats(): List<Int> =
+        seats.indices.filter { seats[it] != SeatKind.BOT }
+
+    private fun currentStopId(): String? {
+        val phase = game.phase
+        if (phase !in confirmPhases) return null
+        val deal = System.identityHashCode(game.deal)
+        return "$deal-$phase-${game.deal.totalTaken}"
     }
+
+    /** True while the session waits for confirmations. */
+    val atConfirmStop: Boolean
+        get() = stopId != null && stopId == currentStopId()
+
+    fun hasConfirmed(seat: Int): Boolean = atConfirmStop && seat in stopConfirmed
+
+    /** Names of the humans everyone is waiting for at the current stop. */
+    fun waitingNames(): List<String> =
+        if (atConfirmStop) humanSeats().filter { it !in stopConfirmed }.map { names[it] }
+        else emptyList()
+
+    /** A human confirmed the current stop (any order). */
+    fun confirmSeat(seat: Int) {
+        if (game.phase !in confirmPhases) return
+        if (seats.getOrNull(seat) == SeatKind.BOT) return
+        if (stopId != currentStopId()) return // stale tap from a previous stop
+        stopConfirmed.add(seat)
+        pump()
+    }
+
+    /** Auto-confirm timer fired: everyone still pending is confirmed. */
+    fun confirmAll() {
+        if (game.phase !in confirmPhases) return
+        stopConfirmed.addAll(humanSeats())
+        pump()
+    }
+
+    /** Run the engine's whole confirm cycle for the finished stop. */
+    private fun applyStop() {
+        when (game.phase) {
+            GamePhase.PrikupOpened -> {
+                game.prikupClose()
+                game.next()
+            }
+            GamePhase.EndTurn -> while (game.phase == GamePhase.EndTurn) {
+                game.turnClose()
+                game.next()
+            }
+            GamePhase.EndPlay -> while (game.phase == GamePhase.EndPlay) {
+                game.endConfirm()
+                game.next()
+            }
+            GamePhase.ScoreView -> while (game.phase == GamePhase.ScoreView) {
+                game.scoreClose()
+                game.next()
+            }
+            else -> {}
+        }
+        stopId = null
+        stopConfirmed.clear()
+    }
+
+    // ------------------------------------------------------------------------
 
     // Animations produced by other seats' moves, replayed by the host UI.
     // Guests still get plain state snapshots.
@@ -90,14 +155,6 @@ class HostGameSession(
         return res
     }
 
-    // Seats (real) that already confirmed the trick being shown in EndTurn:
-    // the engine keeps it in deal.inPlay until everyone confirmed, but a
-    // player who tapped through shouldn't see it come back. Tied to the
-    // trick number: a passive player can see several tricks go by without
-    // the phase ever leaving EndTurn between their confirms.
-    private val trickConfirmed = mutableSetOf<Int>()
-    private var trickConfirmedAt = -1
-
     init {
         if (!four) {
             game.calc = matchCalc
@@ -107,11 +164,6 @@ class HostGameSession(
 
     private fun realOf(gameSeat: Int) = dealMap[gameSeat]
     private fun gameSeatOf(real: Int) = dealMap.indexOf(real)
-
-    /** True when the sitting dealer still has to confirm the deal's score. */
-    val awaitingDealerConfirm: Boolean
-        get() = four && scoreWritten && !dealerConfirmed &&
-                (game.phase == GamePhase.ScoreView || game.phase == GamePhase.Ended)
 
     fun start() {
         if (four) newDeal4() else game.next()
@@ -154,11 +206,8 @@ class HostGameSession(
         game = g
         pendingResult = null
         scoreWritten = false
-        dealerConfirmed = seats[d] == SeatKind.BOT
-        spectatorSawTrick = -1
-        spectatorSawPrikup = false
-        spectatorSawEndPlay = false
-        trickConfirmed.clear()
+        stopId = null
+        stopConfirmed.clear()
         game.next()
     }
 
@@ -182,7 +231,7 @@ class HostGameSession(
         scoreWritten = true
     }
 
-    /** Advance until a human (local or remote) must act, playing bots inline. */
+    /** Advance until a human must act, playing bots inline. */
     fun pump() {
         while (true) {
             pendingAnims += game.animations // kept for the host UI to replay
@@ -193,7 +242,6 @@ class HostGameSession(
                 writeDealToMatch()
             if (game.phase == GamePhase.Ended) {
                 if (!four) break // 3p: the match itself is over
-                if (!dealerConfirmed) break // hold until the sitting dealer taps through
                 if (matchCalc.isFinished) {
                     matchEnded = true
                     break
@@ -201,8 +249,17 @@ class HostGameSession(
                 newDeal4()
                 continue
             }
-            if (spectatorHold()) {
-                // wait for the sitting dealer's tap before the actives move on
+            if (game.phase in confirmPhases) {
+                val id = currentStopId()
+                if (stopId != id) {
+                    stopId = id
+                    stopConfirmed.clear()
+                    stopKey++
+                }
+                if (humanSeats().all { it in stopConfirmed }) {
+                    applyStop()
+                    continue
+                }
                 broadcast()
                 onLocalTurn()
                 return
@@ -240,43 +297,61 @@ class HostGameSession(
 
     /** Send every REMOTE seat its personal view of the current state. */
     private fun broadcast(badMoveFor: Int = -1) {
-        if (game.phase != GamePhase.EndTurn || game.deal.totalTaken != trickConfirmedAt)
-            trickConfirmed.clear()
         val ended = if (four) matchEnded else game.phase == GamePhase.Ended
+        val atStop = atConfirmStop
+        val waiting = waitingNames()
         val withScores = game.phase == GamePhase.ScoreView || game.phase == GamePhase.Ended
         for (seat in seats.indices) {
             if (seats[seat] != SeatKind.REMOTE) continue
+            val confirmed = seat in stopConfirmed && atStop
+            // a confirmed viewer already dismissed the score sheet; final
+            // standings at game end always show
+            val scoresFor = if (withScores && !(confirmed && !ended))
+                RemoteViews.buildScoresFrom(matchCalc, seat) else null
             val g = gameSeatOf(seat)
+            val yourTurn = !ended && if (atStop) !confirmed
+            else g >= 0 && game.phase != GamePhase.Ended && game.turnController() == g
+            val ask = when {
+                !yourTurn -> null
+                atStop -> Ask("confirm")
+                else -> RemoteViews.buildAsk(game)
+            }
             if (g >= 0) {
-                val yourTurn = !ended && game.phase != GamePhase.Ended && game.turnController() == g
                 val fieldFor = RemoteViews.buildFieldFor(game, g)
-                    .let { f -> if (seat in trickConfirmed) f.filter { !it.isInPlay } else f }
+                    .let { f ->
+                        if (confirmed && game.phase == GamePhase.EndTurn)
+                            f.filter { !it.isInPlay } else f
+                    }
                 sendToSeat(
                     seat,
                     GameMsg.State(
                         field = fieldFor,
-                        info = RemoteViews.buildTableInfoFor(game, g, sitOutName = sitOutName),
+                        info = RemoteViews.buildTableInfoFor(
+                            game, g, sitOutName = sitOutName,
+                            waitingFor = waiting, youConfirmed = confirmed
+                        ),
                         yourTurn = yourTurn,
-                        ask = if (yourTurn) RemoteViews.buildAsk(game) else null,
+                        ask = ask,
                         badMove = seat == badMoveFor,
                         ended = ended,
-                        scores = if (withScores) RemoteViews.buildScoresFrom(matchCalc, seat) else null
+                        scores = scoresFor
                     )
                 )
             } else {
-                // the sitting dealer spectates; they tap through the prikup,
-                // every trick, the deal result and the score sheet
-                val confirm = !ended && (awaitingDealerConfirm || spectatorHold())
+                // the sitting dealer spectates; they confirm the same stops
                 sendToSeat(
                     seat,
                     GameMsg.State(
                         field = RemoteViews.buildFieldFor(game, 0, spectator = true),
-                        info = RemoteViews.buildTableInfoFor(game, 0, watching = true, sitOutName = sitOutName),
-                        yourTurn = confirm,
-                        ask = if (confirm) Ask("confirm") else null,
+                        info = RemoteViews.buildTableInfoFor(
+                            game, 0, watching = true, sitOutName = sitOutName,
+                            waitingFor = waiting, youConfirmed = confirmed
+                        ),
+                        yourTurn = yourTurn,
+                        ask = ask,
                         badMove = false,
                         ended = ended,
-                        scores = if (withScores) RemoteViews.buildScoresFrom(matchCalc, seat) else null
+                        scores = scoresFor
                     )
                 )
             }
@@ -294,35 +369,15 @@ class HostGameSession(
     /** Resend every guest's snapshot, e.g. after one of them reconnected. */
     fun rebroadcast() = broadcast()
 
-    /** Anything the sitting dealer may currently tap through. */
-    val spectatorAwaiting: Boolean
-        get() = awaitingDealerConfirm || spectatorHold()
-
-    /** The sitting dealer tapped: release whatever stop is pending. */
-    fun dealerConfirm() {
-        if (awaitingDealerConfirm) {
-            dealerConfirmed = true
-            if (game.phase == GamePhase.Ended) pump()
-            return
-        }
-        if (!spectatorHold()) return
-        when (game.phase) {
-            GamePhase.PrikupOpened -> spectatorSawPrikup = true
-            GamePhase.EndTurn -> spectatorSawTrick = game.deal.totalTaken
-            GamePhase.EndPlay -> spectatorSawEndPlay = true
-            else -> return
-        }
-        pump()
-    }
-
     /** Apply a remote player's answer. Ignores messages from the wrong seat. */
     fun onRemoteAct(seat: Int, act: GameMsg.Act) {
         if (seats.getOrNull(seat) != SeatKind.REMOTE) return
         if (matchEnded) return
-        if (four && seat == sittingOut) {
-            if (act.confirm == true) dealerConfirm()
+        if (act.confirm == true && game.phase in confirmPhases) {
+            confirmSeat(seat)
             return
         }
+        if (four && seat == sittingOut) return // the spectator has no other input
         val g = gameSeatOf(seat)
         if (g < 0 || game.phase == GamePhase.Ended || game.turnController() != g) return
 
@@ -359,24 +414,6 @@ class HostGameSession(
             GamePhase.Playing -> {
                 val card = act.play ?: return
                 if (!game.playCard(card)) ok = false
-            }
-            GamePhase.PrikupOpened -> {
-                if (act.confirm != true) return
-                game.prikupClose()
-            }
-            GamePhase.EndTurn -> {
-                if (act.confirm != true) return
-                trickConfirmed.add(seat)
-                trickConfirmedAt = game.deal.totalTaken
-                game.turnClose()
-            }
-            GamePhase.EndPlay -> {
-                if (act.confirm != true) return
-                game.endConfirm()
-            }
-            GamePhase.ScoreView -> {
-                if (act.confirm != true) return
-                game.scoreClose()
             }
             else -> return
         }

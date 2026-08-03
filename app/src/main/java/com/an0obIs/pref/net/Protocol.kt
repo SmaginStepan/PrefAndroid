@@ -74,6 +74,11 @@ sealed interface ClientMsg {
     @SerialName("start")
     data object Start : ClientMsg
 
+    /** Host rearranges guests before the game starts (seat 0 stays the host). */
+    @Serializable
+    @SerialName("swap_seats")
+    data class SwapSeats(val a: Int, val b: Int) : ClientMsg
+
     @Serializable
     @SerialName("send")
     data class Send(val toSeat: Int? = null, val data: JsonElement) : ClientMsg

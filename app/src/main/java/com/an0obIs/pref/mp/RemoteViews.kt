@@ -70,7 +70,9 @@ object RemoteViews {
         game: Game,
         viewer: Int,
         watching: Boolean = false,
-        sitOutName: String? = null
+        sitOutName: String? = null,
+        waitingFor: List<String> = emptyList(),
+        youConfirmed: Boolean = false
     ): TableInfo {
         fun <T> rotList(src: List<T>): List<T> = List(3) { rel -> src[(rel + viewer) % 3] }
         return TableInfo(
@@ -88,6 +90,8 @@ object RemoteViews {
             controller = rot(game.turnController(), viewer),
             watching = watching,
             sitOutName = sitOutName,
+            waitingFor = waitingFor,
+            youConfirmed = youConfirmed,
             gameResult = if (game.phase == GamePhase.EndPlay) rotResult(game.getGameResult(), viewer) else null,
             showPrikupBtn1 = false,
             showPrikupBtn2 = false,

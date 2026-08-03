@@ -30,7 +30,12 @@ import kotlinx.serialization.json.encodeToJsonElement
 
 /** Client-owned payload stored in the room's opaque `rules` field. */
 @Serializable
-data class RoomRules(val gameRules: GameRules = GameRules(), val limit: Int = 10)
+data class RoomRules(
+    val gameRules: GameRules = GameRules(),
+    val limit: Int = 10,
+    /** confirmations auto-continue after this many seconds (0 = off) */
+    val autoConfirmSec: Int = 0
+)
 
 class LobbyViewModel : ViewModel() {
 
@@ -110,7 +115,16 @@ class LobbyViewModel : ViewModel() {
             is ServerMsg.Rooms -> rooms = msg.rooms
             is ServerMsg.RoomCreated -> mySeat = 0
             is ServerMsg.Joined -> mySeat = msg.seat
-            is ServerMsg.RoomState -> currentRoom = msg.room
+            is ServerMsg.RoomState -> {
+                val prev = currentRoom
+                currentRoom = msg.room
+                // a newcomer while a pulka is loaded: seat them on their column
+                if (loadedCalc != null && isHost && !started) {
+                    val prevNames = prev?.seats?.mapNotNull { it?.name }?.toSet() ?: emptySet()
+                    if (msg.room.seats.any { it != null && it.name !in prevNames })
+                        arrangeByPulka()
+                }
+            }
             is ServerMsg.Started -> started = true
             is ServerMsg.Left -> {
                 currentRoom = null; mySeat = null; started = false; loadedCalc = null
@@ -150,7 +164,8 @@ class LobbyViewModel : ViewModel() {
         maxSeats: Int,
         password: String?,
         preset: RulesGameType,
-        limit: Int
+        limit: Int,
+        autoConfirmSec: Int = 0
     ) {
         ensureName(playerName)
         val rules = GameRules().also {
@@ -180,7 +195,7 @@ class LobbyViewModel : ViewModel() {
                 }
             }
         }
-        val payload: JsonElement = protocolJson.encodeToJsonElement(RoomRules(rules, limit))
+        val payload: JsonElement = protocolJson.encodeToJsonElement(RoomRules(rules, limit, autoConfirmSec))
         client.send(
             ClientMsg.CreateRoom(
                 name = roomName,
@@ -206,6 +221,30 @@ class LobbyViewModel : ViewModel() {
 
     fun addBot() {
         client.send(ClientMsg.AddBot())
+    }
+
+    fun swapSeats(a: Int, b: Int) {
+        if (a != b && a > 0 && b > 0) client.send(ClientMsg.SwapSeats(a, b))
+    }
+
+    /** Move name-matched players onto their saved-pulka columns (visual order). */
+    fun arrangeByPulka() {
+        val calc = loadedCalc ?: return
+        val room = currentRoom ?: return
+        if (!isHost || started) return
+        // simulate on a copy, emit the swap sequence that realizes it
+        val sim = room.seats.toMutableList()
+        val n = minOf(room.maxSeats, calc.playersCount)
+        for (col in 1 until n) {
+            val want = calc.scores[col].name.trim().lowercase()
+            val cur = sim.getOrNull(col)?.name?.trim()?.lowercase()
+            if (cur == want) continue
+            val from = (1 until room.maxSeats).firstOrNull { j ->
+                j != col && sim.getOrNull(j)?.name?.trim()?.lowercase() == want
+            } ?: continue
+            val tmp = sim[col]; sim[col] = sim[from]; sim[from] = tmp
+            swapSeats(col, from)
+        }
     }
 
     fun startGame() {

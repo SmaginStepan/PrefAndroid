@@ -13,8 +13,8 @@ android {
         applicationId = "com.an0obIs.pref"
         minSdk = 26
         targetSdk = 36
-        versionCode = 4
-        versionName = "2.0.2"
+        versionCode = 5
+        versionName = "2.0.3"
     }
 
     buildTypes {
