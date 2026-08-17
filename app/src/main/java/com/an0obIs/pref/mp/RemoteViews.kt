@@ -120,6 +120,52 @@ object RemoteViews {
 
     fun buildScoresFor(game: Game, viewer: Int): ScoreSnap = buildScoresFrom(game.calc, viewer)
 
+    /** The deal's completed tricks from one viewer's perspective. */
+    fun buildTakesFor(game: Game, viewer: Int): List<TakeSnap>? {
+        val ai = game.aIs[viewer] ?: return null
+        if (ai.outOfPlay.isEmpty()) return null
+        return ai.outOfPlay.map { t ->
+            TakeSnap(t.firstMovePerformer, t.takenBy, t.myMove, t.prevMove, t.nextMove, t.prikupMove)
+        }
+    }
+
+    /** Port of computeField's layout-and-discard mode for one viewer: the
+     *  contractor's open hand together with the talon cards this viewer
+     *  cannot rule out. Null when the view does not apply. */
+    fun buildLayoutFor(game: Game, viewer: Int): List<PlacedCard>? {
+        if (game.phase != GamePhase.Playing && game.phase != GamePhase.EndTurn) return null
+        if (game.currentGameType != GameType.Normal && game.currentGameType != GameType.Miser) return null
+        val contractor = game.contractor
+        if (contractor == viewer || !game.opening) return null
+        val ai = game.aIs[viewer] ?: return null
+        val colorNotExists =
+            if (contractor == (viewer + 1) % 3) ai.prevHand.colorNotExists
+            else ai.nextHand.colorNotExists
+        val res = mutableListOf<PlacedCard>()
+        val deal = game.deal
+        for (hand in 0 until 3) {
+            if (hand == contractor) {
+                val list = deal.hands[hand].cards.toMutableList()
+                for (card in deal.prikup.cards)
+                    if (!colorNotExists.contains(card.coatColor)) list.add(card)
+                res.addAll(TableLayout.handPlacements(list, rot(hand, viewer), special = true, hidden = false))
+            } else {
+                val faceUp = hand == viewer || deal.hands[hand].isVisible
+                res.addAll(
+                    TableLayout.handPlacements(
+                        deal.hands[hand].cards, rot(hand, viewer), special = false, hidden = !faceUp
+                    )
+                )
+            }
+        }
+        for ((key, card) in deal.inPlay) {
+            val relKey = if (key < 0) key else rot(key, viewer)
+            val c = TableLayout.inPlayCoords(relKey)
+            res.add(PlacedCard(card = card, hand = relKey, x = c.first, y = c.second, isInPlay = true))
+        }
+        return res
+    }
+
     /** What the current actor must answer, by phase. */
     fun buildAsk(game: Game): Ask = when (game.phase) {
         GamePhase.Negotiations -> Ask("bid", bids = game.getAllowedBids())

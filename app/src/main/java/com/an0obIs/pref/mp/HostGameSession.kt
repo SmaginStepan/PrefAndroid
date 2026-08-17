@@ -327,6 +327,7 @@ class HostGameSession(
                 atStop -> Ask("confirm")
                 else -> RemoteViews.buildAsk(game)
             }
+            val standings = RemoteViews.buildScoresFrom(matchCalc, seat)
             if (g >= 0) {
                 val fieldFor = RemoteViews.buildFieldFor(game, g)
                     .let { f ->
@@ -345,7 +346,10 @@ class HostGameSession(
                         ask = ask,
                         badMove = seat == badMoveFor,
                         ended = ended,
-                        scores = scoresFor
+                        scores = scoresFor,
+                        takes = RemoteViews.buildTakesFor(game, g),
+                        layout = RemoteViews.buildLayoutFor(game, g),
+                        standings = standings
                     )
                 )
             } else {
@@ -362,7 +366,9 @@ class HostGameSession(
                         ask = ask,
                         badMove = false,
                         ended = ended,
-                        scores = scoresFor
+                        scores = scoresFor,
+                        takes = RemoteViews.buildTakesFor(game, 0),
+                        standings = standings
                     )
                 )
             }

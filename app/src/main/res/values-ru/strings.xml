@@ -232,6 +232,7 @@
     <string name="mp_you_deal">Вы сдаёте. Ход: %1$s</string>
     <string name="mp_save_finish">Завершить…</string>
     <string name="default_player_name">Игрок</string>
+    <string name="game_btn_auto">Авто</string>
     <string name="game_btn_score">Пуля</string>
     <string name="learn_exit_q">Выйти из обучения? Позиция не сохранится.</string>
     <string name="learn_exit_yes">Выйти</string>

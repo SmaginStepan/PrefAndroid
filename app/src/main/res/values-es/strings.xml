@@ -63,8 +63,8 @@
     <string name="game_btn_pass">Paso</string>
     <string name="game_btn_discard">Descartar</string>
     <string name="game_btn_not_selected">Sin elegir</string>
-    <string name="game_btn_open">Juego abierto</string>
-    <string name="game_btn_closed">Juego cerrado</string>
+    <string name="game_btn_open">Abierto</string>
+    <string name="game_btn_closed">Cerrado</string>
     <string name="game_btn_hint">Consejo</string>
     <string name="game_btn_tricks">Bazas</string>
     <string name="game_btn_close">Cerrar</string>
@@ -232,6 +232,7 @@
     <string name="mp_you_deal">Repartes esta mano. Turno de %1$s</string>
     <string name="mp_save_finish">Terminar…</string>
     <string name="default_player_name">Jugador</string>
+    <string name="game_btn_auto">Auto</string>
     <string name="game_btn_score">Pulka</string>
     <string name="learn_exit_q">¿Salir del tutorial? La posición no se guardará.</string>
     <string name="learn_exit_yes">Salir</string>

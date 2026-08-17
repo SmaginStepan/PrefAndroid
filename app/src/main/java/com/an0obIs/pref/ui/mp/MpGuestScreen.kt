@@ -4,6 +4,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -59,11 +64,28 @@ class GuestGameViewModel : ViewModel() {
     // one pulka file per guest session, overwritten on every save
     private val calcCreated = System.currentTimeMillis()
 
+    /** Auto-confirm everything until the deal's score sheet appears. */
+    var autoConfirmDeal by mutableStateOf(false)
+    var showLayout by mutableStateOf(false)
+    var showTakes by mutableStateOf(false)
+    var scorePeek by mutableStateOf(false)
+    private var autoSaved = false
+
     fun onState(s: GameMsg.State) {
         val prevKind = state?.ask?.kind
         state = s
         if (s.ask?.kind != prevKind) selectedBid = null
         if (s.ask?.kind != "discard") discardSel.clear()
+        if (s.layout == null) showLayout = false
+        if (s.takes == null) showTakes = false
+        if (s.scores != null) {
+            autoConfirmDeal = false // the score sheet waits for a real tap
+            scorePeek = false
+            if (s.ended && !autoSaved) {
+                autoSaved = true
+                saveScoreSheet(s.scores)
+            }
+        }
     }
 
     /** Save the host's score snapshot as a regular pulka file (guest view: self = player 0). */
@@ -103,7 +125,15 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
         lobbyVm.hostStates.collect { el ->
             try {
                 val msg = gameJson.decodeFromJsonElement(GameMsg.serializer(), el)
-                if (msg is GameMsg.State) vm.onState(msg)
+                if (msg is GameMsg.State) {
+                    vm.onState(msg)
+                    // player-side auto-confirm: everything except the score sheet
+                    if (vm.autoConfirmDeal && msg.scores == null &&
+                        msg.yourTurn && msg.ask?.kind == "confirm"
+                    ) {
+                        act(GameMsg.Act(confirm = true))
+                    }
+                }
             } catch (e: Exception) {
                 android.util.Log.w("PrefNet", "bad game payload", e)
             }
@@ -149,7 +179,8 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
             else -> strings.hint
         }
 
-        for (pc in st.field) {
+        val shownField = if (vm.showLayout) st.layout ?: st.field else st.field
+        for (pc in shownField) {
             val selected = pc.card != null && vm.discardSel.any { it.id == pc.card!!.id }
             Image(
                 bitmap = images.get(pc.card),
@@ -292,6 +323,123 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
                     enabled = btn2.second,
                     modifier = Modifier.offset(x = ux(152.0), y = uy(385.0)).width(ux(176.0))
                 ) { Text(btn2.first, maxLines = 1) }
+            }
+        }
+
+        // bottom-left action buttons (parity with the host table)
+        Row(
+            modifier = Modifier.align(Alignment.BottomStart).padding(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            if (st.takes != null && st.info.showTricksBtn) {
+                OutlinedButton(onClick = { vm.showTakes = true }) {
+                    Text(stringResource(R.string.game_btn_tricks), fontSize = 12.sp, color = Color.White)
+                }
+            }
+            if (st.standings != null && st.scores == null) {
+                OutlinedButton(onClick = { vm.scorePeek = true }) {
+                    Text(stringResource(R.string.game_btn_score), fontSize = 12.sp, color = Color.White)
+                }
+            }
+            OutlinedButton(onClick = { vm.autoConfirmDeal = !vm.autoConfirmDeal }) {
+                Text(
+                    stringResource(R.string.game_btn_auto),
+                    fontSize = 12.sp,
+                    color = if (vm.autoConfirmDeal) Color(0xFFFFB100) else Color.White
+                )
+            }
+        }
+
+        // layout-and-discard toggle sits where the host has it (top center)
+        if (st.layout != null) {
+            OutlinedButton(
+                onClick = { vm.showLayout = !vm.showLayout },
+                modifier = Modifier.offset(x = ux(192.0), y = uy(30.0))
+            ) {
+                Text(
+                    stringResource(
+                        if (vm.showLayout) R.string.game_btn_hide_prikup
+                        else R.string.game_btn_show_prikup
+                    ),
+                    fontSize = 11.sp, color = Color.White
+                )
+            }
+        }
+
+        // on-demand standings peek
+        if (vm.scorePeek && st.scores == null) {
+            st.standings?.let { snap ->
+                com.an0obIs.pref.ui.game.ScoreOverlay(
+                    snap = snap,
+                    modifier = Modifier.fillMaxSize(),
+                    onTap = { vm.scorePeek = false }
+                )
+            }
+        }
+
+        // past tricks popup (same rules as the host: earlier tricks face-down
+        // until the deal's play is over)
+        if (vm.showTakes && st.takes != null) {
+            val takes = st.takes
+            val allFaceUp = st.info.phase == com.an0obIs.pref.model.GamePhase.EndPlay
+            val names = mapOf(-1 to st.info.names[1], 0 to st.info.names[0], 1 to st.info.names[2])
+            Column(
+                modifier = Modifier
+                    .offset(x = ux(24.0), y = uy(18.0))
+                    .width(ux(432.0)).height(uy(500.0))
+                    .background(Color(0xFF009B00), RoundedCornerShape(6.dp))
+                    .border(1.dp, Color.White, RoundedCornerShape(6.dp))
+                    .padding(8.dp)
+            ) {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.game_trick_led), color = Color.White,
+                        modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                    Box(modifier = Modifier.weight(1.6f))
+                    Text(stringResource(R.string.game_trick_took), color = Color.White,
+                        modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .verticalScroll(
+                            rememberScrollState())
+                ) {
+                    for ((idx, take) in takes.withIndex()) {
+                        val faceDown = !allFaceUp && idx < takes.size - 1
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(names[take.first] ?: "", color = Color.White, fontSize = 12.sp,
+                                modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                            Row(
+                                modifier = Modifier.weight(1.6f),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                take.prikup?.let {
+                                    Image(bitmap = images.get(if (faceDown) null else it),
+                                        filterQuality = FilterQuality.High, contentDescription = null,
+                                        modifier = Modifier.size(34.dp))
+                                }
+                                Image(bitmap = images.get(if (faceDown) null else take.next),
+                                    filterQuality = FilterQuality.High, contentDescription = null,
+                                    modifier = Modifier.size(34.dp))
+                                Image(bitmap = images.get(if (faceDown) null else take.prev),
+                                    filterQuality = FilterQuality.High, contentDescription = null,
+                                    modifier = Modifier.size(34.dp))
+                                Image(bitmap = images.get(if (faceDown) null else take.my),
+                                    filterQuality = FilterQuality.High, contentDescription = null,
+                                    modifier = Modifier.size(34.dp))
+                            }
+                            Text(names[take.taker] ?: "", color = Color.White, fontSize = 12.sp,
+                                modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                        }
+                    }
+                }
+                Button(
+                    onClick = { vm.showTakes = false },
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                ) { Text(stringResource(R.string.game_btn_close)) }
             }
         }
 

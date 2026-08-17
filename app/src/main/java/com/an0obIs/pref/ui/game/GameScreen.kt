@@ -601,6 +601,15 @@ fun GameScreen(
                     Text(stringResource(R.string.game_btn_score), fontSize = 12.sp, color = Color.White)
                 }
             }
+            if (vm.hosted) {
+                OutlinedButton(onClick = { vm.toggleAutoConfirmDeal() }) {
+                    Text(
+                        stringResource(R.string.game_btn_auto),
+                        fontSize = 12.sp,
+                        color = if (vm.autoConfirmDeal) AccentYellow else Color.White
+                    )
+                }
+            }
         }
 
         // In-table pulka peek: current standings, tap to dismiss

@@ -45,6 +45,17 @@ data class ScoreSnap(
     val dealer: Int = 0
 )
 
+/** One completed trick, viewer-relative (-1 prev / 0 you / 1 next). */
+@Serializable
+data class TakeSnap(
+    val first: Int,
+    val taker: Int,
+    val my: Card? = null,
+    val prev: Card? = null,
+    val next: Card? = null,
+    val prikup: Card? = null
+)
+
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
 @JsonClassDiscriminator("t")
@@ -60,7 +71,14 @@ sealed interface GameMsg {
         val ask: Ask? = null,
         val badMove: Boolean = false,
         val ended: Boolean = false,
-        val scores: ScoreSnap? = null
+        /** the score sheet everyone must look at (deal end / game end) */
+        val scores: ScoreSnap? = null,
+        /** completed tricks of the deal, for the guest tricks viewer */
+        val takes: List<TakeSnap>? = null,
+        /** the layout-and-discard view (contractor's open hand + possible talon) */
+        val layout: List<PlacedCard>? = null,
+        /** current standings for the on-demand score peek */
+        val standings: ScoreSnap? = null
     ) : GameMsg
 
     /** A guest's answer to an Ask. Exactly one field is set. */

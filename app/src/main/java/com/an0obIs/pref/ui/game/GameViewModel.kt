@@ -355,7 +355,44 @@ class GameViewModel : ViewModel() {
         )
             RemoteViews.buildScoresFrom(s.matchCalc, 0)
         else null
+        // the finished match's pulka saves itself (host side);
+        // sittingOut < 0 means a 3-player match, where Ended is terminal
+        if (hosted && s != null && !matchAutoSaved &&
+            (s.matchEnded || (s.sittingOut < 0 && game.phase == GamePhase.Ended))
+        ) {
+            matchAutoSaved = true
+            saveScoreSheet()
+        }
         armAutoConfirm()
+        autoAdvanceDeal()
+    }
+
+    private var matchAutoSaved = false
+
+    /** Player-side "auto to the end of the deal": confirms everything except
+     *  the score sheet, where it switches itself off. */
+    var autoConfirmDeal by mutableStateOf(false)
+        private set
+
+    fun toggleAutoConfirmDeal() {
+        autoConfirmDeal = !autoConfirmDeal
+        if (autoConfirmDeal) autoAdvanceDeal()
+    }
+
+    private fun autoAdvanceDeal() {
+        val s = session ?: return
+        if (!autoConfirmDeal) return
+        if (game.phase == GamePhase.ScoreView || game.phase == GamePhase.Ended) {
+            autoConfirmDeal = false // the score sheet waits for a real tap
+            return
+        }
+        if (busy) return
+        if (!s.atConfirmStop || s.hasConfirmed(0)) return
+        when (game.phase) {
+            GamePhase.EndTurn -> hideDeal()
+            GamePhase.PrikupOpened, GamePhase.EndPlay -> hostedConfirm()
+            else -> {}
+        }
     }
 
     // ---- auto-confirm (host option): confirmations only, never real moves ----
