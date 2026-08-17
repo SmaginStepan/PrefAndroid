@@ -121,6 +121,38 @@ class AgreementTest {
     }
 
     @Test
+    fun restMineEndsRaspasyUnilaterally() {
+        val calc = com.an0obIs.pref.model.Calculation(3, 10)
+        val names = listOf("P0", "P1", "P2")
+        for (i in 0..2) calc.scores[i].name = names[i]
+        val session = com.an0obIs.pref.mp.HostGameSession(
+            seats = List(3) { com.an0obIs.pref.mp.SeatKind.REMOTE },
+            names = names,
+            matchCalc = calc,
+            sendToSeat = { _, _ -> },
+            onLocalTurn = { }
+        )
+        session.start()
+        // everyone passes -> распасы
+        val pas = Game.Bid().also { it.pas = true }
+        repeat(3) {
+            session.onRemoteAct(session.game.turnController(), com.an0obIs.pref.mp.GameMsg.Act(bid = pas))
+        }
+        assertEquals(com.an0obIs.pref.model.GameType.Raspasy, session.game.currentGameType)
+        assertEquals(GamePhase.Playing, session.game.phase)
+        // «остальные мои» from seat 1: instant, no confirmations
+        session.onRemoteAct(1, com.an0obIs.pref.mp.GameMsg.Act(restMine = true))
+        assertEquals(GamePhase.EndPlay, session.game.phase)
+        assertEquals("offerer holds every remaining trick", 10, session.game.deal.hands[1].taken)
+        assertEquals(0, session.game.deal.hands[0].taken)
+        assertEquals(0, session.game.deal.hands[2].taken)
+        // through the result confirms into the score: raspasy is written
+        repeat(3) { session.confirmSeat(it) }
+        assertEquals("mountain for ten tricks on raspasy", 10, calc.scores[1].gora)
+        assertTrue("non-takers write the pulya", calc.scores[0].pulya > 0 && calc.scores[2].pulya > 0)
+    }
+
+    @Test
     fun conservativeBotRule() {
         val game = gameAtPlay()
         val c = game.contractor

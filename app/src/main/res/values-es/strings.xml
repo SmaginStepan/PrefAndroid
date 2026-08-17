@@ -238,6 +238,7 @@
     <string name="offer_down_fmt">Sin %1$d (%2$d)</string>
     <string name="offer_surrender">Sin 3 (rendirse)</string>
     <string name="offer_miser_fmt">Se llevó %1$d</string>
+    <string name="offer_rest_mine">El resto es mío</string>
     <string name="offer_from_fmt">%1$s propone un acuerdo</string>
     <string name="offer_accept">Aceptar</string>
     <string name="offer_decline">Rechazar</string>

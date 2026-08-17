@@ -175,6 +175,44 @@ class HostGameSession(
         )
     }
 
+    /**
+     * «Остальные мои»: the offerer takes every remaining trick, everyone else
+     * keeps their resolved count. On распасы, and on мизер from the declarer,
+     * it applies instantly; from a мизер catcher, the other HUMAN non-declarer
+     * players must confirm (bots are excluded from this negotiation).
+     */
+    fun makeRestMineOffer(realSeat: Int) {
+        if (matchEnded || pendingOffer != null) return
+        if (game.phase != GamePhase.Playing) return
+        val raspasy = game.currentGameType == GameType.Raspasy
+        val miser = game.currentGameType == GameType.Miser
+        if (!raspasy && !miser) return
+        val g = gameSeatOf(realSeat)
+        if (g < 0) return // the sitting dealer never offers
+        val remaining = 10 - game.deal.totalTaken
+        val taken = (0..2).associateWith {
+            game.deal.hands[it].taken + if (it == g) remaining else 0
+        }
+        if (raspasy || g == game.contractor) {
+            applyOffer(taken, noVists = false) // unilateral
+            return
+        }
+        // мизер catcher: human non-declarer players confirm, declarer doesn't
+        val responders = mutableSetOf<Int>()
+        for (r in seats.indices) {
+            if (r == realSeat || seats[r] == SeatKind.BOT) continue
+            if (gameSeatOf(r) == game.contractor) continue
+            responders.add(r)
+        }
+        if (responders.isEmpty()) {
+            applyOffer(taken, noVists = false)
+            return
+        }
+        pendingOffer = PendingOffer(realSeat, taken, responders)
+        broadcast()
+        onLocalTurn()
+    }
+
     /** An involved player proposes the deal's final trick counts. */
     fun makeOffer(realSeat: Int, takenGame: Map<Int, Int>) {
         if (matchEnded || pendingOffer != null) return
@@ -505,6 +543,10 @@ class HostGameSession(
         // agreement offers and answers bypass the turn gate
         act.agree?.let {
             respondOffer(seat, it)
+            return
+        }
+        if (act.restMine == true) {
+            makeRestMineOffer(seat)
             return
         }
         act.offer?.let { rel ->

@@ -199,6 +199,7 @@ internal fun AgreementUi(
     offerN: Int,
     onStep: (Int, Int) -> Unit,
     onOffer: (List<Int>) -> Unit,
+    onRestMine: () -> Unit,
     pending: com.an0obIs.pref.mp.OfferSnap?,
     onRespond: (Boolean) -> Unit,
     ux: (Double) -> Dp,
@@ -225,6 +226,22 @@ internal fun AgreementUi(
                 .background(Color(0x99123B16))
                 .border(1.dp, Color(0x992E7D32))
         ) {
+            if (agreements.restMineAvailable(info)) {
+                item {
+                    Text(
+                        text = stringResource(R.string.offer_rest_mine),
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onStep(0, 0)
+                                onRestMine()
+                            }
+                            .padding(10.dp)
+                    )
+                }
+            }
             items(agreements.declarerOptions(info)) { n ->
                 Text(
                     text = declarerLabel(n),
@@ -776,6 +793,7 @@ fun GameScreen(
             offerN = offerN,
             onStep = { step, n -> offerStep = step; offerN = n },
             onOffer = { taken -> offerStep = 0; vm.offerAgreement(taken) },
+            onRestMine = { vm.offerRestMine() },
             pending = vm.offerDialog,
             onRespond = { agree -> vm.respondAgreement(agree) },
             ux = ::ux, uy = ::uy

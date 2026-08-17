@@ -18,7 +18,7 @@ object Agreements {
     fun canOffer(info: TableInfo): Boolean {
         if (info.phase != GamePhase.Playing) return false
         return when (info.currentGameType) {
-            GameType.Miser ->
+            GameType.Miser, GameType.Raspasy ->
                 !info.watching // any of the three players; the sitting dealer only responds
             GameType.Normal -> {
                 val whisters = info.isVister.filterValues { it }.keys
@@ -27,6 +27,19 @@ object Agreements {
             }
             else -> false
         }
+    }
+
+    /** «Остальные мои» exists on распасы (the only option) and мизер. */
+    fun restMineAvailable(info: TableInfo): Boolean =
+        info.phase == GamePhase.Playing && !info.watching &&
+                (info.currentGameType == GameType.Raspasy || info.currentGameType == GameType.Miser)
+
+    /** «Остальные мои»: the viewer takes all remaining tricks, everyone else
+     *  keeps their resolved count (viewer-relative). */
+    fun restMineTaken(info: TableInfo): List<Int> {
+        val res = info.taken.toMutableList()
+        res[0] = info.taken[0] + remaining(info)
+        return res
     }
 
     /** Remaining (unresolved) tricks; the unfinished trick counts as remaining. */
@@ -38,6 +51,7 @@ object Agreements {
      * to what the other hands' current takes allow. Misère: 1..3.
      */
     fun declarerOptions(info: TableInfo): List<Int> {
+        if (info.currentGameType == GameType.Raspasy) return emptyList() // only «остальные мои»
         val c = info.contractor
         val tC = info.taken.getOrElse(c) { 0 }
         val r = remaining(info)

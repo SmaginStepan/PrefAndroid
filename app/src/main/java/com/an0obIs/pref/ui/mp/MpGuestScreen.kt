@@ -364,6 +364,7 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
             offerN = offerN,
             onStep = { step, n -> offerStep = step; offerN = n },
             onOffer = { taken -> offerStep = 0; act(GameMsg.Act(offer = taken)) },
+            onRestMine = { act(GameMsg.Act(restMine = true)) },
             pending = st.offer,
             onRespond = { agree -> act(GameMsg.Act(agree = agree)) },
             ux = ::ux, uy = ::uy

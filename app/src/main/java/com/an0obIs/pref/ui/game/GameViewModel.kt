@@ -417,6 +417,38 @@ class GameViewModel : ViewModel() {
         gameNext()
     }
 
+    /** «Остальные мои»: the offerer takes everything remaining (распасы;
+     *  мизер — instantly for the declarer, bots never negotiate it). */
+    fun offerRestMine() {
+        if (busy) return
+        val s = session
+        if (s != null) {
+            viewModelScope.launch {
+                busy = true
+                val anims = withContext(Dispatchers.Default) {
+                    mpMutex.withLock {
+                        s.makeRestMineOffer(0)
+                        s.drainAnims()
+                    }
+                }
+                syncHostedGame()
+                processAnimations(ArrayDeque(anims))
+                busy = false
+                buildMenu()
+                refresh()
+            }
+            return
+        }
+        if (game.phase != GamePhase.Playing) return
+        if (game.currentGameType != GameType.Raspasy && game.currentGameType != GameType.Miser) return
+        // single player: unilateral on raspasy/as declarer; bot catchers are
+        // excluded from this negotiation, so it always applies immediately
+        val remaining = 10 - game.deal.totalTaken
+        val taken = (0..2).associateWith { game.deal.hands[it].taken + if (it == 0) remaining else 0 }
+        game.applyAgreement(taken)
+        gameNext()
+    }
+
     /** The host answers a pending offer. */
     fun respondAgreement(agree: Boolean) {
         val s = session ?: return

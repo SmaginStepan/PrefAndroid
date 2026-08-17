@@ -107,6 +107,8 @@ sealed interface GameMsg {
         val confirm: Boolean? = null,
         /** propose an agreement: final trick counts, viewer-relative */
         val offer: List<Int>? = null,
+        /** the offer is «остальные мои» (raspasy/misère special) */
+        val restMine: Boolean? = null,
         /** answer to a pending offer */
         val agree: Boolean? = null
     ) : GameMsg
