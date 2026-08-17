@@ -232,6 +232,17 @@
     <string name="mp_you_deal">You deal this hand. %1$s to act</string>
     <string name="mp_save_finish">Finish…</string>
     <string name="default_player_name">Player</string>
+    <string name="game_btn_offer">Offer…</string>
+    <string name="offer_own_fmt">As bid (%1$d)</string>
+    <string name="offer_takes_fmt">%1$d tricks</string>
+    <string name="offer_down_fmt">Down %1$d (%2$d)</string>
+    <string name="offer_surrender">Down 3 (surrender)</string>
+    <string name="offer_miser_fmt">Took %1$d</string>
+    <string name="offer_from_fmt">%1$s offers an agreement</string>
+    <string name="offer_accept">Accept</string>
+    <string name="offer_decline">Decline</string>
+    <string name="offer_waiting">Waiting for answers…</string>
+    <string name="offer_declined_fmt">%1$s declined the offer</string>
     <string name="game_btn_auto">Auto</string>
     <string name="game_btn_score">Score</string>
     <string name="learn_exit_q">Exit the tutorial? Your position will not be saved.</string>

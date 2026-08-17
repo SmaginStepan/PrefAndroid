@@ -45,6 +45,17 @@ data class ScoreSnap(
     val dealer: Int = 0
 )
 
+/** A pending agreement offer, viewer-relative. */
+@Serializable
+data class OfferSnap(
+    /** display name of the player who made the offer */
+    val by: String,
+    /** the agreed final trick counts (index = viewer-relative seat) */
+    val taken: List<Int>,
+    /** this viewer must answer accept/decline */
+    val youRespond: Boolean = false
+)
+
 /** One completed trick, viewer-relative (-1 prev / 0 you / 1 next). */
 @Serializable
 data class TakeSnap(
@@ -78,7 +89,9 @@ sealed interface GameMsg {
         /** the layout-and-discard view (contractor's open hand + possible talon) */
         val layout: List<PlacedCard>? = null,
         /** current standings for the on-demand score peek */
-        val standings: ScoreSnap? = null
+        val standings: ScoreSnap? = null,
+        /** an agreement offer is pending: the table is frozen */
+        val offer: OfferSnap? = null
     ) : GameMsg
 
     /** A guest's answer to an Ask. Exactly one field is set. */
@@ -91,6 +104,10 @@ sealed interface GameMsg {
         val opening: Boolean? = null,
         val discard: List<Card>? = null,
         val play: Card? = null,
-        val confirm: Boolean? = null
+        val confirm: Boolean? = null,
+        /** propose an agreement: final trick counts, viewer-relative */
+        val offer: List<Int>? = null,
+        /** answer to a pending offer */
+        val agree: Boolean? = null
     ) : GameMsg
 }

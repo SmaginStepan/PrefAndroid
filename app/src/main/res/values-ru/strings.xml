@@ -232,6 +232,17 @@
     <string name="mp_you_deal">Вы сдаёте. Ход: %1$s</string>
     <string name="mp_save_finish">Завершить…</string>
     <string name="default_player_name">Игрок</string>
+    <string name="game_btn_offer">Предложить…</string>
+    <string name="offer_own_fmt">При своих (%1$d)</string>
+    <string name="offer_takes_fmt">%1$d взяток</string>
+    <string name="offer_down_fmt">Без %1$d (%2$d)</string>
+    <string name="offer_surrender">Без 3 (застрелиться)</string>
+    <string name="offer_miser_fmt">Взял %1$d</string>
+    <string name="offer_from_fmt">%1$s предлагает соглашение</string>
+    <string name="offer_accept">Принять</string>
+    <string name="offer_decline">Отклонить</string>
+    <string name="offer_waiting">Ожидание ответа…</string>
+    <string name="offer_declined_fmt">%1$s отклонил предложение</string>
     <string name="game_btn_auto">Авто</string>
     <string name="game_btn_score">Пуля</string>
     <string name="learn_exit_q">Выйти из обучения? Позиция не сохранится.</string>

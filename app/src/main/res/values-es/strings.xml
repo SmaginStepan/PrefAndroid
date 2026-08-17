@@ -232,6 +232,17 @@
     <string name="mp_you_deal">Repartes esta mano. Turno de %1$s</string>
     <string name="mp_save_finish">Terminar…</string>
     <string name="default_player_name">Jugador</string>
+    <string name="game_btn_offer">Proponer…</string>
+    <string name="offer_own_fmt">Como declaró (%1$d)</string>
+    <string name="offer_takes_fmt">%1$d bazas</string>
+    <string name="offer_down_fmt">Sin %1$d (%2$d)</string>
+    <string name="offer_surrender">Sin 3 (rendirse)</string>
+    <string name="offer_miser_fmt">Se llevó %1$d</string>
+    <string name="offer_from_fmt">%1$s propone un acuerdo</string>
+    <string name="offer_accept">Aceptar</string>
+    <string name="offer_decline">Rechazar</string>
+    <string name="offer_waiting">Esperando respuesta…</string>
+    <string name="offer_declined_fmt">%1$s rechazó la propuesta</string>
     <string name="game_btn_auto">Auto</string>
     <string name="game_btn_score">Pulka</string>
     <string name="learn_exit_q">¿Salir del tutorial? La posición no se guardará.</string>

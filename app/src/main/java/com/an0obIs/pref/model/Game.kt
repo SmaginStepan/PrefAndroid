@@ -75,6 +75,26 @@ class Game {
     @Transient
     var singleDealMode: Boolean = false
 
+    /** «Без 3 (застрелиться)»: the declarer surrendered — the whists are
+     *  voided by the agreement, only the mountain is written. */
+    @Transient
+    var agreedNoVists: Boolean = false
+
+    /**
+     * Ends the deal by mutual agreement: [finalTaken] are the agreed final
+     * trick counts per player. The deal jumps to the normal result screen,
+     * so scoring, result text and the score view flow are unchanged.
+     */
+    fun applyAgreement(finalTaken: Map<Int, Int>, noVists: Boolean = false) {
+        for ((p, t) in finalTaken)
+            if (p in 0..2) deal.hands[p].taken = t
+        deal.inPlay.clear()
+        agreedNoVists = noVists
+        phase = GamePhase.EndPlay
+        playersToWait = 3
+        onProgress?.invoke()
+    }
+
     class Animation {
         var player: Int = 0
         var card: Card? = null
@@ -205,6 +225,7 @@ class Game {
     fun newDeal() {
         curentBids = mutableMapOf()
         isVister = mutableMapOf()
+        agreedNoVists = false
         deal = Deal()
         // in single player seat 0 is the local human; in hosted multiplayer
         // no hand is publicly visible until the play opens it
@@ -759,7 +780,8 @@ class Game {
             it.contractor = contractor
             it.dealer = calc.dealer
             it.multiplier = calc.currentRaspasyMultiplier
-            it.visters = isVister.filter { v -> v.value }.keys.toMutableList()
+            it.visters = if (agreedNoVists) mutableListOf()
+            else isVister.filter { v -> v.value }.keys.toMutableList()
         }
         result.taken = mutableMapOf()
         for (i in 0 until 3) {

@@ -129,7 +129,7 @@ class HostGameSession(
     /** Run the engine's whole confirm cycle for the finished stop. */
     private fun applyStop() {
         when (game.phase) {
-            GamePhase.PrikupOpened -> {
+            GamePhase.PrikupOpened -> while (game.phase == GamePhase.PrikupOpened) {
                 game.prikupClose()
                 game.next()
             }
@@ -149,6 +149,108 @@ class HostGameSession(
         }
         stopId = null
         stopConfirmed.clear()
+    }
+
+    // ------------------------------------------------------------------------
+
+    // ---- agreement offers («расписать») ------------------------------------
+
+    private class PendingOffer(
+        val byReal: Int,
+        /** absolute game-seat -> agreed final takes */
+        val takenGame: Map<Int, Int>,
+        /** real seats still to answer */
+        val awaiting: MutableSet<Int>
+    )
+
+    private var pendingOffer: PendingOffer? = null
+    val offerPending: Boolean get() = pendingOffer != null
+
+    fun offerSnapFor(realSeat: Int): OfferSnap? = pendingOffer?.let { o ->
+        val g = gameSeatOf(realSeat).coerceAtLeast(0)
+        OfferSnap(
+            by = names[o.byReal],
+            taken = List(3) { rel -> o.takenGame[(rel + g) % 3] ?: 0 },
+            youRespond = realSeat in o.awaiting
+        )
+    }
+
+    /** An involved player proposes the deal's final trick counts. */
+    fun makeOffer(realSeat: Int, takenGame: Map<Int, Int>) {
+        if (matchEnded || pendingOffer != null) return
+        if (game.phase != GamePhase.Playing) return
+        val miser = game.currentGameType == GameType.Miser
+        if (!miser && game.currentGameType != GameType.Normal) return
+        val g = gameSeatOf(realSeat)
+        if (g < 0) return // the sitting dealer never offers
+        if (!miser) {
+            if (game.isVister.none { it.value }) return // nobody to agree with
+            if (g != game.contractor && game.isVister[g] != true) return
+        }
+        // sanity: full distribution respecting resolved takes
+        if ((0..2).sumOf { takenGame[it] ?: -100 } != 10) return
+        for (s in 0..2) if ((takenGame[s] ?: return) < game.deal.hands[s].taken) return
+
+        // «без 3»: the declarer surrenders unilaterally, whists are voided
+        if (!miser && g == game.contractor && takenGame[g] == game.contract - 3) {
+            applyOffer(takenGame, noVists = true)
+            return
+        }
+        val responders = mutableSetOf<Int>()
+        if (miser) {
+            // everyone at the table answers, the sitting dealer included
+            for (r in seats.indices) if (r != realSeat) responders.add(r)
+        } else {
+            for (ig in game.isVister.filterValues { it }.keys + game.contractor) {
+                val r = realOf(ig)
+                if (r != realSeat) responders.add(r)
+            }
+        }
+        val offer = PendingOffer(realSeat, takenGame, responders)
+        // bots answer instantly with the conservative rule
+        for (r in responders.toList()) {
+            if (seats[r] != SeatKind.BOT) continue
+            val bg = gameSeatOf(r)
+            val accepts = bg < 0 || Agreements.botAccepts(bg, game, takenGame)
+            if (!accepts) {
+                broadcast() // declined: the table simply resumes
+                onLocalTurn()
+                return
+            }
+            offer.awaiting.remove(r)
+        }
+        if (offer.awaiting.isEmpty()) {
+            applyOffer(takenGame, noVists = false)
+            return
+        }
+        pendingOffer = offer
+        broadcast()
+        onLocalTurn()
+    }
+
+    /** A responder answered the pending offer. */
+    fun respondOffer(realSeat: Int, agree: Boolean) {
+        val o = pendingOffer ?: return
+        if (realSeat !in o.awaiting) return
+        if (!agree) {
+            pendingOffer = null // play resumes exactly where it was
+            broadcast()
+            onLocalTurn()
+            return
+        }
+        o.awaiting.remove(realSeat)
+        if (o.awaiting.isEmpty()) applyOffer(o.takenGame, noVists = false)
+        else {
+            broadcast()
+            onLocalTurn()
+        }
+    }
+
+    private fun applyOffer(takenGame: Map<Int, Int>, noVists: Boolean) {
+        pendingOffer = null
+        game.applyAgreement(takenGame, noVists)
+        game.next() // EndPlay: the usual result screen + confirm stop take over
+        pump()
     }
 
     // ------------------------------------------------------------------------
@@ -217,6 +319,7 @@ class HostGameSession(
         scoreWritten = false
         stopId = null
         stopConfirmed.clear()
+        pendingOffer = null
         game.next()
     }
 
@@ -311,6 +414,7 @@ class HostGameSession(
         val ended = if (four) matchEnded else game.phase == GamePhase.Ended
         val atStop = atConfirmStop
         val waiting = waitingNames()
+        val offerActive = pendingOffer != null
         val withScores = game.phase == GamePhase.ScoreView || game.phase == GamePhase.Ended
         for (seat in seats.indices) {
             if (seats[seat] != SeatKind.REMOTE) continue
@@ -320,13 +424,14 @@ class HostGameSession(
             val scoresFor = if (withScores && !(confirmed && !ended))
                 RemoteViews.buildScoresFrom(matchCalc, seat) else null
             val g = gameSeatOf(seat)
-            val yourTurn = !ended && if (atStop) !confirmed
+            val yourTurn = !ended && !offerActive && if (atStop) !confirmed
             else g >= 0 && game.phase != GamePhase.Ended && game.turnController() == g
             val ask = when {
                 !yourTurn -> null
                 atStop -> Ask("confirm")
                 else -> RemoteViews.buildAsk(game)
             }
+            val offerFor = offerSnapFor(seat)
             val standings = RemoteViews.buildScoresFrom(matchCalc, seat)
             if (g >= 0) {
                 val fieldFor = RemoteViews.buildFieldFor(game, g)
@@ -349,7 +454,8 @@ class HostGameSession(
                         scores = scoresFor,
                         takes = RemoteViews.buildTakesFor(game, g),
                         layout = RemoteViews.buildLayoutFor(game, g),
-                        standings = standings
+                        standings = standings,
+                        offer = offerFor
                     )
                 )
             } else {
@@ -368,7 +474,8 @@ class HostGameSession(
                         ended = ended,
                         scores = scoresFor,
                         takes = RemoteViews.buildTakesFor(game, 0),
-                        standings = standings
+                        standings = standings,
+                        offer = offerFor
                     )
                 )
             }
@@ -378,6 +485,7 @@ class HostGameSession(
     /** Host ends the match early (after saving the pulka): everyone gets a
      *  final ended state with the standings. */
     fun abortMatch() {
+        pendingOffer = null
         matchEnded = true
         game.phase = GamePhase.Ended
         broadcast()

@@ -363,11 +363,78 @@ class GameViewModel : ViewModel() {
             matchAutoSaved = true
             saveScoreSheet()
         }
+        offerDialog = s?.offerSnapFor(0)
         armAutoConfirm()
         autoAdvanceDeal()
     }
 
     private var matchAutoSaved = false
+
+    // ---- agreement offers («расписать») ------------------------------------
+
+    /** The offer currently frozen on the table (host view). */
+    var offerDialog by mutableStateOf<com.an0obIs.pref.mp.OfferSnap?>(null)
+        private set
+
+    /** Propose the deal's final trick counts (host or single player). */
+    fun offerAgreement(finalTaken: List<Int>) {
+        if (busy || finalTaken.size != 3) return
+        val takenMap = finalTaken.mapIndexed { i, v -> i to v }.toMap()
+        val s = session
+        if (s != null) {
+            viewModelScope.launch {
+                busy = true
+                val anims = withContext(Dispatchers.Default) {
+                    mpMutex.withLock {
+                        s.makeOffer(0, takenMap)
+                        s.drainAnims()
+                    }
+                }
+                syncHostedGame()
+                processAnimations(ArrayDeque(anims))
+                busy = false
+                buildMenu()
+                refresh()
+            }
+            return
+        }
+        // single player: the bots answer instantly with the conservative rule
+        if (game.phase != GamePhase.Playing) return
+        val surrender = game.currentGameType == GameType.Normal &&
+                game.contractor == 0 && finalTaken[0] == game.contract - 3
+        val miser = game.currentGameType == GameType.Miser
+        val responders =
+            if (miser) listOf(1, 2)
+            else (game.isVister.filterValues { it }.keys + game.contractor).filter { it != 0 }
+        val declinedBy = if (surrender) null
+        else responders.firstOrNull { !com.an0obIs.pref.mp.Agreements.botAccepts(it, game, takenMap) }
+        if (declinedBy != null) {
+            val name = game.calc.scores[declinedBy].name
+            transientHint = { ctx -> ctx.getString(R.string.offer_declined_fmt, name) }
+            return
+        }
+        game.applyAgreement(takenMap, surrender)
+        gameNext()
+    }
+
+    /** The host answers a pending offer. */
+    fun respondAgreement(agree: Boolean) {
+        val s = session ?: return
+        viewModelScope.launch {
+            busy = true
+            val anims = withContext(Dispatchers.Default) {
+                mpMutex.withLock {
+                    s.respondOffer(0, agree)
+                    s.drainAnims()
+                }
+            }
+            syncHostedGame()
+            processAnimations(ArrayDeque(anims))
+            busy = false
+            buildMenu()
+            refresh()
+        }
+    }
 
     /** Player-side "auto to the end of the deal": confirms everything except
      *  the score sheet, where it switches itself off. */

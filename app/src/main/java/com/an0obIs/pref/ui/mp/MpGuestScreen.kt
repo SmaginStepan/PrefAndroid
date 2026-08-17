@@ -148,6 +148,8 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
         return
     }
     val ask = if (st.yourTurn) st.ask else null
+    var offerStep by remember { mutableStateOf(0) }
+    var offerN by remember { mutableStateOf(0) }
 
     BoxWithConstraints(
         modifier = Modifier
@@ -348,7 +350,24 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
                     color = if (vm.autoConfirmDeal) Color(0xFFFFB100) else Color.White
                 )
             }
+            if (com.an0obIs.pref.mp.Agreements.canOffer(st.info)) {
+                OutlinedButton(onClick = { offerStep = 1 }) {
+                    Text(stringResource(R.string.game_btn_offer), fontSize = 12.sp, color = Color.White)
+                }
+            }
         }
+
+        // agreement offer menus + pending dialog (shared with the host table)
+        com.an0obIs.pref.ui.game.AgreementUi(
+            info = st.info,
+            offerStep = offerStep,
+            offerN = offerN,
+            onStep = { step, n -> offerStep = step; offerN = n },
+            onOffer = { taken -> offerStep = 0; act(GameMsg.Act(offer = taken)) },
+            pending = st.offer,
+            onRespond = { agree -> act(GameMsg.Act(agree = agree)) },
+            ux = ::ux, uy = ::uy
+        )
 
         // layout-and-discard toggle sits where the host has it (top center)
         if (st.layout != null) {

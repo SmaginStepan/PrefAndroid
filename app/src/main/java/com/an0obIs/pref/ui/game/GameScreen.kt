@@ -33,7 +33,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -185,6 +187,153 @@ private fun buildTableStringsInner(ctx: Context, info: TableInfo): TableStrings 
     return TableStrings(p0, p1, p2, gameInfo, hint, result)
 }
 
+/**
+ * Agreement («расписать») UI shared by the host table and the guest screen:
+ * the two-step offer menu (declarer takes, then the whister split) and the
+ * modal dialog while an offer is pending.
+ */
+@Composable
+internal fun AgreementUi(
+    info: TableInfo,
+    offerStep: Int,
+    offerN: Int,
+    onStep: (Int, Int) -> Unit,
+    onOffer: (List<Int>) -> Unit,
+    pending: com.an0obIs.pref.mp.OfferSnap?,
+    onRespond: (Boolean) -> Unit,
+    ux: (Double) -> Dp,
+    uy: (Double) -> Dp
+) {
+    val ctx = LocalContext.current
+    val agreements = com.an0obIs.pref.mp.Agreements
+    val miser = info.currentGameType == GameType.Miser
+    val contract = info.maxBid?.contract ?: 0
+
+    fun declarerLabel(n: Int): String = when {
+        miser -> ctx.getString(R.string.offer_miser_fmt, n)
+        n == contract -> ctx.getString(R.string.offer_own_fmt, n)
+        n > contract -> ctx.getString(R.string.offer_takes_fmt, n)
+        n == contract - 3 && info.contractor == 0 -> ctx.getString(R.string.offer_surrender)
+        else -> ctx.getString(R.string.offer_down_fmt, contract - n, n)
+    }
+
+    if (offerStep == 1 && agreements.canOffer(info)) {
+        LazyColumn(
+            modifier = Modifier
+                .offset(x = ux(139.0), y = uy(37.0))
+                .width(ux(203.0)).height(uy(286.0))
+                .background(Color(0x99123B16))
+                .border(1.dp, Color(0x992E7D32))
+        ) {
+            items(agreements.declarerOptions(info)) { n ->
+                Text(
+                    text = declarerLabel(n),
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            val surrender = !miser && info.contractor == 0 && n == contract - 3
+                            if (miser || surrender || agreements.whisters(info).size != 2) {
+                                onStep(0, 0)
+                                onOffer(agreements.buildTaken(info, n))
+                            } else onStep(2, n)
+                        }
+                        .padding(10.dp)
+                )
+            }
+            item {
+                Text(
+                    text = stringResource(R.string.close),
+                    color = Color(0xFFFFB100),
+                    fontSize = 16.sp,
+                    modifier = Modifier.fillMaxWidth().clickable { onStep(0, 0) }.padding(10.dp)
+                )
+            }
+        }
+    }
+    if (offerStep == 2) {
+        val w = agreements.whisters(info)
+        LazyColumn(
+            modifier = Modifier
+                .offset(x = ux(139.0), y = uy(37.0))
+                .width(ux(203.0)).height(uy(286.0))
+                .background(Color(0x99123B16))
+                .border(1.dp, Color(0x992E7D32))
+        ) {
+            item {
+                Text(
+                    text = declarerLabel(offerN),
+                    color = Color(0xFFFFB100),
+                    fontSize = 16.sp,
+                    modifier = Modifier.fillMaxWidth().padding(10.dp)
+                )
+            }
+            items(agreements.whistSplits(info, offerN)) { split ->
+                Text(
+                    text = "${info.names[w[0]]} ${split.first} · ${info.names[w[1]]} ${split.second}",
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            onStep(0, 0)
+                            onOffer(agreements.buildTaken(info, offerN, split))
+                        }
+                        .padding(10.dp)
+                )
+            }
+            item {
+                Text(
+                    text = stringResource(R.string.close),
+                    color = Color(0xFFFFB100),
+                    fontSize = 16.sp,
+                    modifier = Modifier.fillMaxWidth().clickable { onStep(1, 0) }.padding(10.dp)
+                )
+            }
+        }
+    }
+
+    pending?.let { offer ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { /* the table is frozen until it is resolved */ },
+            title = { Text(stringResource(R.string.offer_from_fmt, offer.by), fontSize = 17.sp) },
+            text = {
+                Column {
+                    for (i in 0..2) {
+                        Text(
+                            text = "${info.names[i]}: ${offer.taken.getOrElse(i) { 0 }}",
+                            fontSize = 16.sp,
+                            modifier = Modifier.padding(vertical = 2.dp)
+                        )
+                    }
+                    if (!offer.youRespond) {
+                        Text(
+                            text = stringResource(R.string.offer_waiting),
+                            fontSize = 13.sp,
+                            modifier = Modifier.padding(top = 10.dp)
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                if (offer.youRespond) {
+                    Button(onClick = { onRespond(true) }) {
+                        Text(stringResource(R.string.offer_accept))
+                    }
+                }
+            },
+            dismissButton = {
+                if (offer.youRespond) {
+                    androidx.compose.material3.TextButton(onClick = { onRespond(false) }) {
+                        Text(stringResource(R.string.offer_decline))
+                    }
+                }
+            }
+        )
+    }
+}
+
 /** 4-player games: the dealer sits this deal out, shown top center. */
 @Composable
 internal fun SitOutBadge(name: String, ux: (Double) -> Dp, uy: (Double) -> Dp) {
@@ -284,6 +433,9 @@ fun GameScreen(
             }
         }
     }
+
+    var offerStep by remember { mutableStateOf(0) }
+    var offerN by remember { mutableStateOf(0) }
 
     BoxWithConstraints(
         modifier = Modifier
@@ -610,7 +762,24 @@ fun GameScreen(
                     )
                 }
             }
+            if (com.an0obIs.pref.mp.Agreements.canOffer(info)) {
+                OutlinedButton(onClick = { offerStep = 1 }) {
+                    Text(stringResource(R.string.game_btn_offer), fontSize = 12.sp, color = Color.White)
+                }
+            }
         }
+
+        // agreement offer menus + pending dialog
+        AgreementUi(
+            info = info,
+            offerStep = offerStep,
+            offerN = offerN,
+            onStep = { step, n -> offerStep = step; offerN = n },
+            onOffer = { taken -> offerStep = 0; vm.offerAgreement(taken) },
+            pending = vm.offerDialog,
+            onRespond = { agree -> vm.respondAgreement(agree) },
+            ux = ::ux, uy = ::uy
+        )
 
         // In-table pulka peek: current standings, tap to dismiss
         vm.scorePeek?.let { snap ->
