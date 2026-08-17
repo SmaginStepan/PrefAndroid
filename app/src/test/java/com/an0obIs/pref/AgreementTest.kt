@@ -22,6 +22,10 @@ class AgreementTest {
     private fun gameAtPlay(): Game {
         val game = Game.create()
         game.externalDriver = true
+        return driveToPlay(game)
+    }
+
+    private fun driveToPlay(game: Game): Game {
         game.next()
         val bid6 = Game.Bid().also { it.contract = 6; it.trump = 2 } // 6 diamonds: no Stalingrad auto-whist
         game.makeBid(bid6); game.next()
@@ -79,6 +83,41 @@ class AgreementTest {
         assertEquals("mountain for 3 undertricks", 6, game.calc.scores[c].gora)
         assertEquals("no pulya", 0, game.calc.scores[c].pulya)
         assertEquals("whists voided", 0, game.calc.scores[whister].visty[c] ?: 0)
+    }
+
+    @Test
+    fun guestOffersAndAnswersRouteThroughActs() {
+        // regression: onRemoteAct must route Act.offer / Act.agree (they used
+        // to fall through to the turn gate and be silently dropped)
+        val calc = com.an0obIs.pref.model.Calculation(3, 10)
+        val names = listOf("P0", "P1", "P2")
+        for (i in 0..2) calc.scores[i].name = names[i]
+        val states = mutableMapOf<Int, com.an0obIs.pref.mp.GameMsg.State>()
+        val session = com.an0obIs.pref.mp.HostGameSession(
+            seats = List(3) { com.an0obIs.pref.mp.SeatKind.REMOTE },
+            names = names,
+            matchCalc = calc,
+            sendToSeat = { seat, msg -> states[seat] = msg },
+            onLocalTurn = { }
+        )
+        driveToPlay(session.game)
+        val game = session.game
+        val c = game.contractor
+        val whister = game.isVister.filterValues { it }.keys.first()
+        val passer = (0..2).first { it != c && it != whister }
+        val takenAbs = mapOf(c to 6, whister to 4, passer to 0)
+        // the whister offers, viewer-relative from their seat
+        val rel = List(3) { i -> takenAbs[(i + whister) % 3]!! }
+        session.onRemoteAct(whister, com.an0obIs.pref.mp.GameMsg.Act(offer = rel))
+        assertTrue("offer must reach the session", session.offerPending)
+        assertTrue("the declarer must be asked to respond",
+            states[c]?.offer?.youRespond == true)
+        assertTrue("the passer must not respond",
+            states[passer]?.offer?.youRespond == false)
+        // the declarer accepts via an act: the deal ends on the result screen
+        session.onRemoteAct(c, com.an0obIs.pref.mp.GameMsg.Act(agree = true))
+        assertEquals(GamePhase.EndPlay, session.game.phase)
+        assertEquals(6, session.game.deal.hands[c].taken)
     }
 
     @Test

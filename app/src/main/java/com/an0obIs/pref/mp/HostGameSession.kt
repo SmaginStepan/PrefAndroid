@@ -502,6 +502,19 @@ class HostGameSession(
             confirmSeat(seat)
             return
         }
+        // agreement offers and answers bypass the turn gate
+        act.agree?.let {
+            respondOffer(seat, it)
+            return
+        }
+        act.offer?.let { rel ->
+            if (rel.size == 3) {
+                val g = gameSeatOf(seat)
+                if (g >= 0) makeOffer(seat, (0..2).associate { r -> (r + g) % 3 to rel[r] })
+            }
+            return
+        }
+        if (pendingOffer != null) return // table frozen while an offer is pending
         if (four && seat == sittingOut) return // the spectator has no other input
         val g = gameSeatOf(seat)
         if (g < 0 || game.phase == GamePhase.Ended || game.turnController() != g) return
