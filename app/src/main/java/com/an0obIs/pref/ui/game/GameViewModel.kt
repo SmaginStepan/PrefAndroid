@@ -364,6 +364,9 @@ class GameViewModel : ViewModel() {
             saveScoreSheet()
         }
         offerDialog = s?.offerSnapFor(0)
+        s?.consumeDeclineNotice()?.let { name ->
+            transientHint = { ctx -> ctx.getString(R.string.offer_declined_fmt, name) }
+        }
         armAutoConfirm()
         autoAdvanceDeal()
     }

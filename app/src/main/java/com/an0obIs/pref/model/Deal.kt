@@ -90,10 +90,9 @@ class Deal {
     var inPlay: MutableMap<Int, Card> = mutableMapOf()
     var inPlayCoatColor: Int = 0
 
-    init {
-        // The C# constructor always shuffled; deserialization overwrites this.
-        shuffle()
-    }
+    // No init { shuffle() } here: kotlinx runs init blocks AFTER assigning the
+    // decoded fields, so it would clobber every restored deal with a reshuffle.
+    // Callers that need a fresh deal must call shuffle() themselves.
 
     /** Rebuild transient per-suit indexes after deserialization. */
     fun restoreAfterLoad() {

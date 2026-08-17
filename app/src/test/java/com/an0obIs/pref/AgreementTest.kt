@@ -25,9 +25,11 @@ class AgreementTest {
         return driveToPlay(game)
     }
 
-    private fun driveToPlay(game: Game): Game {
+    private fun driveToPlay(game: Game, trump: Int = 2): Game {
+        // trump 2 (diamonds) = one whister; trump 0 (spades) can trigger the
+        // Stalingrad rule and auto-whist both opponents
         game.next()
-        val bid6 = Game.Bid().also { it.contract = 6; it.trump = 2 } // 6 diamonds: no Stalingrad auto-whist
+        val bid6 = Game.Bid().also { it.contract = 6; it.trump = trump }
         game.makeBid(bid6); game.next()
         game.makeBid(Game.Bid().also { it.pas = true }); game.next()
         game.makeBid(Game.Bid().also { it.pas = true }); game.next()
@@ -39,11 +41,12 @@ class AgreementTest {
         val hand = game.deal.hands[game.contractor].cards.toList()
         game.discardCard(hand[0]); game.discardCard(hand[1]); game.next()
         assertEquals(GamePhase.GameChoose, game.phase)
-        game.setContract(Game.Bid().also { it.contract = 6; it.trump = 2 }); game.next()
-        assertEquals(GamePhase.VistNegotiations, game.phase)
-        game.setVist(true); game.next()
+        game.setContract(Game.Bid().also { it.contract = 6; it.trump = trump }); game.next()
         if (game.phase == GamePhase.VistNegotiations) {
-            game.setVist(false); game.next()
+            game.setVist(true); game.next()
+            if (game.phase == GamePhase.VistNegotiations) {
+                game.setVist(false); game.next()
+            }
         }
         if (game.phase == GamePhase.OpeningChoose) {
             game.setOpeningChoice(false); game.next()
@@ -118,6 +121,59 @@ class AgreementTest {
         session.onRemoteAct(c, com.an0obIs.pref.mp.GameMsg.Act(agree = true))
         assertEquals(GamePhase.EndPlay, session.game.phase)
         assertEquals(6, session.game.deal.hands[c].taken)
+    }
+
+    @Test
+    fun surrenderWorksWithTwoWhisters() {
+        // regression: buildTaken without a split (surrender skips step 2) used
+        // to return a partial distribution the host silently rejected
+        val calc = com.an0obIs.pref.model.Calculation(3, 10)
+        val names = listOf("P0", "P1", "P2")
+        for (i in 0..2) calc.scores[i].name = names[i]
+        val session = com.an0obIs.pref.mp.HostGameSession(
+            seats = List(3) { com.an0obIs.pref.mp.SeatKind.REMOTE },
+            names = names,
+            matchCalc = calc,
+            sendToSeat = { _, _ -> },
+            onLocalTurn = { }
+        )
+        driveToPlay(session.game, trump = 0) // Stalingrad: both opponents whist
+        val game = session.game
+        assertEquals(2, game.isVister.count { it.value })
+        val c = game.contractor
+        val info = com.an0obIs.pref.mp.RemoteViews.buildTableInfoFor(game, c)
+        val taken = com.an0obIs.pref.mp.Agreements.buildTaken(info, 3) // без 3, no split
+        assertEquals("distribution must always total ten", 10, taken.sum())
+        session.onRemoteAct(c, com.an0obIs.pref.mp.GameMsg.Act(offer = taken))
+        assertEquals("surrender applies unilaterally", GamePhase.EndPlay, game.phase)
+        repeat(3) { session.confirmSeat(it) } // deal result
+        repeat(3) { session.confirmSeat(it) } // score sheet
+        assertEquals("mountain for 3 undertricks", 6, calc.scores[c].gora)
+        for (w in game.isVister.filterValues { it }.keys)
+            assertEquals("whists voided for every whister", 0, calc.scores[w].visty[c] ?: 0)
+    }
+
+    @Test
+    fun surrenderSurvivesSaveAndRestore() {
+        // regression: agreedNoVists was @Transient, so a save on the surrender
+        // result screen restored a deal that scored the whists again
+        val game = gameAtPlay()
+        val c = game.contractor
+        val whister = game.isVister.filterValues { it }.keys.first()
+        val passer = (0..2).first { it != c && it != whister }
+        game.applyAgreement(mapOf(c to 3, whister to 7, passer to 0), noVists = true)
+        game.saveLast()
+        val restored = Game.loadLast()!!
+        restored.externalDriver = true
+        assertTrue("surrender flag must survive the save", restored.agreedNoVists)
+        assertEquals("trick counts must survive the save", 3, restored.deal.hands[c].taken)
+        assertEquals("contract must survive", 6, restored.contract)
+        assertEquals("waiting confirms restored", 3, restored.playersToWait)
+        assertEquals("no score written yet", 0, restored.calc.scores[c].gora)
+        repeat(3) { restored.endConfirm(); restored.next() }
+        assertEquals(GamePhase.ScoreView, restored.phase)
+        assertEquals("mountain only", 6, restored.calc.scores[c].gora)
+        assertEquals("whists stay voided", 0, restored.calc.scores[whister].visty[c] ?: 0)
     }
 
     @Test

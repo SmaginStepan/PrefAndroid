@@ -210,6 +210,12 @@ internal fun AgreementUi(
     val miser = info.currentGameType == GameType.Miser
     val contract = info.maxBid?.contract ?: 0
 
+    // the table can advance (another player's act) while a menu is open:
+    // close an overlay that no longer applies
+    if (offerStep != 0 && !agreements.canOffer(info)) {
+        LaunchedEffect(info) { onStep(0, 0) }
+    }
+
     fun declarerLabel(n: Int): String = when {
         miser -> ctx.getString(R.string.offer_miser_fmt, n)
         n == contract -> ctx.getString(R.string.offer_own_fmt, n)

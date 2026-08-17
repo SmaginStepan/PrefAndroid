@@ -176,6 +176,7 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
 
         val strings = buildTableStrings(ctx, st.info, mp = true)
         val hintText = when {
+            st.offerDeclined != null -> stringResource(R.string.offer_declined_fmt, st.offerDeclined!!)
             st.badMove -> stringResource(R.string.mp_bad_move)
             st.ended -> stringResource(R.string.mp_game_over)
             else -> strings.hint

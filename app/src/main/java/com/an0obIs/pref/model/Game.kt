@@ -13,7 +13,7 @@ enum class GamePhase { NotStarted, Negotiations, VistNegotiations, PrikupOpened,
 class Game {
 
     //region Данные
-    var deal: Deal = Deal()
+    var deal: Deal = Deal().also { it.shuffle() }
     var calc: Calculation = Calculation()
     var phase: GamePhase = GamePhase.NotStarted
     var playerInTurn: Int = 0
@@ -76,8 +76,9 @@ class Game {
     var singleDealMode: Boolean = false
 
     /** «Без 3 (застрелиться)»: the declarer surrendered — the whists are
-     *  voided by the agreement, only the mountain is written. */
-    @Transient
+     *  voided by the agreement, only the mountain is written. Serialized:
+     *  a save/restore across the surrender result screen must not silently
+     *  re-enable the whists. */
     var agreedNoVists: Boolean = false
 
     /**
@@ -226,7 +227,7 @@ class Game {
         curentBids = mutableMapOf()
         isVister = mutableMapOf()
         agreedNoVists = false
-        deal = Deal()
+        deal = Deal().also { it.shuffle() }
         // in single player seat 0 is the local human; in hosted multiplayer
         // no hand is publicly visible until the play opens it
         deal.hands[0].isVisible = !externalDriver

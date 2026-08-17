@@ -56,8 +56,8 @@ fun HighScoresScreen(app: PrefApp, playerScore: Double?, onToMenu: () -> Unit) {
     var playerName by remember {
         mutableStateOf(AppSettings().let { if (it.isDefaultPlayerName) defaultName else it.playerName })
     }
-    val isRussian = androidx.compose.ui.platform.LocalContext.current
-        .resources.configuration.locales[0].language == "ru"
+    val isRussian = androidx.compose.ui.platform.LocalConfiguration.current
+        .locales[0].language == "ru"
     val fmt = remember { DecimalFormat("0.#") }
 
     Column(

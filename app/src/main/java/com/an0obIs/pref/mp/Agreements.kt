@@ -112,9 +112,16 @@ object Agreements {
                     res[w[0]] = 10 - declarerTakes - res[passer]
                 }
                 2 -> {
-                    val s = split ?: return res
-                    res[w[0]] = s.first
-                    res[w[1]] = s.second
+                    if (split != null) {
+                        res[w[0]] = split.first
+                        res[w[1]] = split.second
+                    } else {
+                        // no split chosen (the surrender path voids the whists
+                        // anyway): the second whister keeps their resolved
+                        // takes, the first absorbs the remainder
+                        res[w[1]] = info.taken[w[1]]
+                        res[w[0]] = 10 - declarerTakes - res[w[1]]
+                    }
                 }
             }
         }

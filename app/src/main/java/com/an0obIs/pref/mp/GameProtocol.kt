@@ -91,7 +91,9 @@ sealed interface GameMsg {
         /** current standings for the on-demand score peek */
         val standings: ScoreSnap? = null,
         /** an agreement offer is pending: the table is frozen */
-        val offer: OfferSnap? = null
+        val offer: OfferSnap? = null,
+        /** name of the player who just declined an offer (one broadcast only) */
+        val offerDeclined: String? = null
     ) : GameMsg
 
     /** A guest's answer to an Ask. Exactly one field is set. */
