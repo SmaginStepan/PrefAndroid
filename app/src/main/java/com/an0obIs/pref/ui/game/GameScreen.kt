@@ -10,6 +10,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -226,6 +227,8 @@ internal fun AgreementUi(
 
     // Like game declaring: tapping an option only selects it, and the two
     // buttons under the menu confirm (send or go to the split step) or cancel.
+    // Tight content padding so long labels («остальные мои») fit the width.
+    val offerBtnPad = PaddingValues(horizontal = 6.dp, vertical = 8.dp)
     if (offerStep == 1 && agreements.canOffer(info)) {
         val options = agreements.declarerOptions(info)
         val restMine = agreements.restMineAvailable(info)
@@ -234,12 +237,14 @@ internal fun AgreementUi(
             if (restMine) {
                 Button(
                     onClick = { onStep(0, 0); onRestMine() },
+                    contentPadding = offerBtnPad,
                     modifier = Modifier.offset(x = ux(152.0), y = uy(330.0)).width(ux(176.0))
                 ) {
-                    Text(stringResource(R.string.offer_rest_mine), maxLines = 1)
+                    Text(stringResource(R.string.offer_rest_mine), fontSize = 12.sp, maxLines = 1)
                 }
                 Button(
                     onClick = { onStep(0, 0) },
+                    contentPadding = offerBtnPad,
                     modifier = Modifier.offset(x = ux(152.0), y = uy(385.0)).width(ux(176.0))
                 ) {
                     Text(stringResource(R.string.offer_cancel), maxLines = 1)
@@ -295,19 +300,22 @@ internal fun AgreementUi(
                     }
                 },
                 enabled = chosen,
+                contentPadding = offerBtnPad,
                 modifier = Modifier.offset(x = ux(152.0), y = uy(330.0)).width(ux(176.0))
             ) {
-                Text(
-                    text = when {
-                        !chosen -> stringResource(R.string.game_btn_not_selected)
-                        sel.value == -1 -> stringResource(R.string.offer_rest_mine)
-                        else -> declarerLabel(sel.value)
-                    },
-                    maxLines = 1
-                )
+                if (chosen && sel.value == -1) {
+                    Text(stringResource(R.string.offer_rest_mine), fontSize = 12.sp, maxLines = 1)
+                } else {
+                    Text(
+                        text = if (chosen) declarerLabel(sel.value)
+                        else stringResource(R.string.game_btn_not_selected),
+                        maxLines = 1
+                    )
+                }
             }
             Button(
                 onClick = { onStep(0, 0) },
+                contentPadding = offerBtnPad,
                 modifier = Modifier.offset(x = ux(152.0), y = uy(385.0)).width(ux(176.0))
             ) {
                 Text(stringResource(R.string.offer_cancel), maxLines = 1)
@@ -353,6 +361,7 @@ internal fun AgreementUi(
                 }
             },
             enabled = sel.value != null,
+            contentPadding = offerBtnPad,
             modifier = Modifier.offset(x = ux(152.0), y = uy(330.0)).width(ux(176.0))
         ) {
             Text(
@@ -363,6 +372,7 @@ internal fun AgreementUi(
         }
         Button(
             onClick = { onStep(1, 0) },
+            contentPadding = offerBtnPad,
             modifier = Modifier.offset(x = ux(152.0), y = uy(385.0)).width(ux(176.0))
         ) {
             Text(stringResource(R.string.offer_cancel), maxLines = 1)
