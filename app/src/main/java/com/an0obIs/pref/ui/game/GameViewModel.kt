@@ -162,6 +162,10 @@ class GameViewModel : ViewModel() {
             sendToSeat = sendToSeat,
             onLocalTurn = {
                 viewModelScope.launch {
+                    // the act coroutine that pumped the session refreshes after
+                    // it replays the animations; refreshing before that would
+                    // show the post-pump table under the pending animations
+                    if (busy) return@launch
                     syncHostedGame()
                     buildMenu()
                     refresh()
@@ -515,6 +519,7 @@ class GameViewModel : ViewModel() {
         autoJob?.cancel()
         autoJob = viewModelScope.launch {
             kotlinx.coroutines.delay(autoConfirmSec * 1000L)
+            busy = true
             val anims = withContext(Dispatchers.Default) {
                 mpMutex.withLock {
                     if (s.stopKey == key && s.atConfirmStop) {
@@ -524,11 +529,8 @@ class GameViewModel : ViewModel() {
                 }
             }
             syncHostedGame()
-            if (anims.isNotEmpty()) {
-                busy = true
-                processAnimations(ArrayDeque(anims))
-                busy = false
-            }
+            processAnimations(ArrayDeque(anims))
+            busy = false
             buildMenu()
             refresh()
         }
@@ -638,13 +640,18 @@ class GameViewModel : ViewModel() {
             val a = if (queue.isNotEmpty()) queue.removeFirst() else break
             if (a.take) {
                 // a trick closed without a confirm stop: collect what is still
-                // lying on the table toward the taker (skip if already clean)
-                val lying = field.filter { it.isInPlay && it.card != null } +
-                        pinnedOverlays.filter { it.isInPlay && it.card != null }
+                // lying on the table toward the taker (skip if already clean);
+                // never touch cards of the trick currently in play — a refresh
+                // may already have drawn the next trick under this replay
+                val current = game.deal.inPlay.values.map { it.id }.toSet()
+                val lying = (field.filter { it.isInPlay && it.card != null } +
+                        pinnedOverlays.filter { it.isInPlay && it.card != null })
+                    .filter { it.card!!.id !in current }
                 if (lying.isNotEmpty()) {
                     val (tx, ty) = TableLayout.outOfPlayCoords(a.player)
-                    field = field.filter { !it.isInPlay }
-                    pinnedOverlays.removeAll { it.isInPlay }
+                    val ids = lying.map { it.card!!.id }.toSet()
+                    field = field.filter { !(it.isInPlay && it.card?.id in ids) }
+                    pinnedOverlays.removeAll { it.isInPlay && it.card?.id in ids }
                     trickAnim = TrickAnim(lying, tx, ty)
                     runAnim()
                     trickAnim = null

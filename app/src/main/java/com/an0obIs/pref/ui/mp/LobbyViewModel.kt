@@ -276,6 +276,10 @@ class LobbyViewModel : ViewModel() {
     }
 
     override fun onCleared() {
+        // leaving the multiplayer section is deliberate: give up the seat so
+        // the server does not auto-rejoin us into the old room on the next
+        // visit (the disconnect grace is for accidental drops only)
+        if (currentRoom != null) client.send(ClientMsg.Leave)
         client.disconnect()
     }
 }
