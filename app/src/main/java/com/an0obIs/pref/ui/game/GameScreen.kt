@@ -303,10 +303,14 @@ internal fun AgreementUi(
                 contentPadding = offerBtnPad,
                 modifier = Modifier.offset(x = ux(152.0), y = uy(330.0)).width(ux(176.0))
             ) {
-                if (chosen && sel.value == -1) {
-                    Text(stringResource(R.string.offer_rest_mine), fontSize = 12.sp, maxLines = 1)
-                } else {
-                    Text(
+                val surrenderSel = chosen && sel.value != -1 &&
+                        !miser && info.contractor == 0 && sel.value == contract - 3
+                when {
+                    chosen && sel.value == -1 ->
+                        Text(stringResource(R.string.offer_rest_mine), fontSize = 12.sp, maxLines = 1)
+                    surrenderSel ->
+                        Text(declarerLabel(sel.value), fontSize = 12.sp, maxLines = 1)
+                    else -> Text(
                         text = if (chosen) declarerLabel(sel.value)
                         else stringResource(R.string.game_btn_not_selected),
                         maxLines = 1
