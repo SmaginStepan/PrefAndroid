@@ -522,7 +522,8 @@ class GameViewModel : ViewModel() {
     private fun armAutoConfirm() {
         val s = session ?: return
         if (autoConfirmSec <= 0) return
-        if (!s.atConfirmStop) {
+        // the between-deals pulka sheet always waits for real taps
+        if (!s.atConfirmStop || game.phase == GamePhase.ScoreView) {
             autoJob?.cancel(); autoJob = null; autoArmedKey = -1
             return
         }

@@ -63,6 +63,13 @@ fun ScoreOverlay(
     val nameLabels = if (n == 4) NAMES_4 else NAMES_3
     val lines = if (n == 4) LINES_4 else LINES_3
 
+    // a stray second tap right after closing the results view must not fall
+    // through onto the sheet's tap-to-continue surface
+    var tapShieldUntil by remember { mutableStateOf(0L) }
+    fun shieldedTap() {
+        if (android.os.SystemClock.uptimeMillis() >= tapShieldUntil) onTap()
+    }
+
     BoxWithConstraints(
         modifier = modifier
             .background(Color(0xF2103814), RoundedCornerShape(10.dp))
@@ -70,7 +77,7 @@ fun ScoreOverlay(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = onTap
+                onClick = ::shieldedTap
             )
     ) {
         val kx = maxWidth / SHEET_W.toFloat()
@@ -197,7 +204,10 @@ fun ScoreOverlay(
                         indication = null
                     ) { /* swallow taps so they don't hit the sheet below */ }
             ) {
-                com.an0obIs.pref.ui.calc.CalcResultsScreen(calc) { showResults = false }
+                com.an0obIs.pref.ui.calc.CalcResultsScreen(calc) {
+                    showResults = false
+                    tapShieldUntil = android.os.SystemClock.uptimeMillis() + 400
+                }
             }
         }
     }
