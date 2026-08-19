@@ -72,7 +72,9 @@ object RemoteViews {
         watching: Boolean = false,
         sitOutName: String? = null,
         waitingFor: List<String> = emptyList(),
-        youConfirmed: Boolean = false
+        youConfirmed: Boolean = false,
+        /** engine-seat indexed; rotated for the viewer like everything else */
+        bots: List<Boolean> = emptyList()
     ): TableInfo {
         fun <T> rotList(src: List<T>): List<T> = List(3) { rel -> src[(rel + viewer) % 3] }
         return TableInfo(
@@ -91,6 +93,7 @@ object RemoteViews {
             watching = watching,
             sitOutName = sitOutName,
             waitingFor = waitingFor,
+            bots = if (bots.size == 3) rotList(bots) else bots,
             youConfirmed = youConfirmed,
             gameResult = if (game.phase == GamePhase.EndPlay) rotResult(game.getGameResult(), viewer) else null,
             showPrikupBtn1 = false,

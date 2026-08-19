@@ -50,6 +50,8 @@ data class TableInfo(
     val sitOutName: String? = null,
     /** humans still to confirm the current stop (trick/result/score) */
     val waitingFor: List<String> = emptyList(),
+    /** which seats are bots (hosted games); the turn hint never names a bot */
+    val bots: List<Boolean> = emptyList(),
     /** this viewer already confirmed the current stop */
     val youConfirmed: Boolean = false,
     val gameResult: Calculation.GameResult? = null,
@@ -317,6 +319,7 @@ class GameViewModel : ViewModel() {
         watching = session?.hostActive == false,
         sitOutName = session?.sitOutName,
         waitingFor = session?.waitingNames() ?: emptyList(),
+        bots = session?.let { s -> List(3) { g -> s.botAt(g) } } ?: emptyList(),
         youConfirmed = session?.hasConfirmed(0) == true,
         gameResult = if (game.phase == GamePhase.EndPlay) game.getGameResult() else null,
         showPrikupBtn1 = (game.phase == GamePhase.Playing || game.phase == GamePhase.EndTurn)
@@ -482,7 +485,16 @@ class GameViewModel : ViewModel() {
 
     fun toggleAutoConfirmDeal() {
         autoConfirmDeal = !autoConfirmDeal
+        notifyAutoMode(autoConfirmDeal)
         if (autoConfirmDeal) autoAdvanceDeal()
+    }
+
+    /** Tell the session, so nobody is shown "waiting for" this player. */
+    private fun notifyAutoMode(on: Boolean) {
+        val s = session ?: return
+        viewModelScope.launch {
+            withContext(Dispatchers.Default) { mpMutex.withLock { s.setAutoMode(0, on) } }
+        }
     }
 
     private fun autoAdvanceDeal() {
@@ -490,6 +502,7 @@ class GameViewModel : ViewModel() {
         if (!autoConfirmDeal) return
         if (game.phase == GamePhase.ScoreView || game.phase == GamePhase.Ended) {
             autoConfirmDeal = false // the score sheet waits for a real tap
+            notifyAutoMode(false)
             return
         }
         if (busy) return

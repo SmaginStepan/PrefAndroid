@@ -114,6 +114,8 @@ sealed interface GameMsg {
         /** the offer is «остальные мои» (raspasy/misère special) */
         val restMine: Boolean? = null,
         /** answer to a pending offer */
-        val agree: Boolean? = null
+        val agree: Boolean? = null,
+        /** the player switched client-side auto-confirm on/off */
+        val autoMode: Boolean? = null
     ) : GameMsg
 }

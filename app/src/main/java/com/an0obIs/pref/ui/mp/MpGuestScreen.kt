@@ -126,7 +126,11 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
             try {
                 val msg = gameJson.decodeFromJsonElement(GameMsg.serializer(), el)
                 if (msg is GameMsg.State) {
+                    val wasAuto = vm.autoConfirmDeal
                     vm.onState(msg)
+                    // auto-confirm switched itself off at the score sheet:
+                    // let the host show us in the waiting list again
+                    if (wasAuto && !vm.autoConfirmDeal) act(GameMsg.Act(autoMode = false))
                     // player-side auto-confirm: everything except the score sheet
                     if (vm.autoConfirmDeal && msg.scores == null &&
                         msg.yourTurn && msg.ask?.kind == "confirm"
@@ -348,7 +352,10 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
                         Text(stringResource(R.string.game_btn_score), fontSize = 12.sp, color = Color.White)
                     }
                 }
-                OutlinedButton(onClick = { vm.autoConfirmDeal = !vm.autoConfirmDeal }) {
+                OutlinedButton(onClick = {
+                    vm.autoConfirmDeal = !vm.autoConfirmDeal
+                    act(GameMsg.Act(autoMode = vm.autoConfirmDeal))
+                }) {
                     Text(
                         stringResource(R.string.game_btn_auto),
                         fontSize = 12.sp,

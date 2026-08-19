@@ -107,8 +107,11 @@ internal fun buildTableStrings(ctx: Context, info: TableInfo, mp: Boolean = fals
         return base
     }
     // In multiplayer, action hints belong only to the player who controls the
-    // turn; everyone else sees whose move the table is waiting for.
-    if (mp && info.controller != 0 && info.phase != GamePhase.Ended) {
+    // turn; everyone else sees whose move the table is waiting for. Bots move
+    // by themselves — never announce waiting for one.
+    if (mp && info.controller != 0 && info.phase != GamePhase.Ended &&
+        info.bots.getOrNull(info.controller) != true
+    ) {
         return base.copy(hint = ctx.getString(R.string.mp_waiting_for, info.names[info.controller]))
     }
     return base

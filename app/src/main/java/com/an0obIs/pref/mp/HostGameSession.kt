@@ -105,9 +105,12 @@ class HostGameSession(
 
     fun hasConfirmed(seat: Int): Boolean = atConfirmStop && seat in stopConfirmed
 
-    /** Names of the humans everyone is waiting for at the current stop. */
+    /** Names of the humans everyone is waiting for at the current stop.
+     *  Players in auto-confirm mode confirm by themselves, so they are not
+     *  worth announcing. */
     fun waitingNames(): List<String> =
-        if (atConfirmStop) humanSeats().filter { it !in stopConfirmed }.map { names[it] }
+        if (atConfirmStop)
+            humanSeats().filter { it !in stopConfirmed && it !in autoSeats }.map { names[it] }
         else emptyList()
 
     /** A human confirmed the current stop (any order). */
@@ -334,6 +337,22 @@ class HostGameSession(
     private fun realOf(gameSeat: Int) = dealMap[gameSeat]
     private fun gameSeatOf(real: Int) = dealMap.indexOf(real)
 
+    /** Whether the given engine seat is played by a bot this deal. */
+    fun botAt(gameSeat: Int): Boolean =
+        seats.getOrNull(realOf(gameSeat)) == SeatKind.BOT
+
+    // Real seats whose player currently runs client-side auto-confirm; they
+    // confirm on their own moments later, so nobody is shown waiting for them.
+    private val autoSeats = mutableSetOf<Int>()
+
+    fun setAutoMode(seat: Int, on: Boolean) {
+        val changed = if (on) autoSeats.add(seat) else autoSeats.remove(seat)
+        if (changed && atConfirmStop) {
+            broadcast()
+            onLocalTurn()
+        }
+    }
+
     fun start() {
         if (four) newDeal4() else game.next()
         pump()
@@ -503,7 +522,8 @@ class HostGameSession(
                         field = fieldFor,
                         info = RemoteViews.buildTableInfoFor(
                             game, g, sitOutName = sitOutName,
-                            waitingFor = waiting, youConfirmed = confirmed
+                            waitingFor = waiting, youConfirmed = confirmed,
+                            bots = List(3) { botAt(it) }
                         ),
                         yourTurn = yourTurn,
                         ask = ask,
@@ -525,7 +545,8 @@ class HostGameSession(
                         field = RemoteViews.buildFieldFor(game, 0, spectator = true),
                         info = RemoteViews.buildTableInfoFor(
                             game, 0, watching = true, sitOutName = sitOutName,
-                            waitingFor = waiting, youConfirmed = confirmed
+                            waitingFor = waiting, youConfirmed = confirmed,
+                            bots = List(3) { botAt(it) }
                         ),
                         yourTurn = yourTurn,
                         ask = ask,
@@ -558,6 +579,10 @@ class HostGameSession(
     fun onRemoteAct(seat: Int, act: GameMsg.Act) {
         if (seats.getOrNull(seat) != SeatKind.REMOTE) return
         if (matchEnded) return
+        act.autoMode?.let {
+            setAutoMode(seat, it)
+            return
+        }
         if (act.confirm == true && game.phase in confirmPhases) {
             confirmSeat(seat)
             return
