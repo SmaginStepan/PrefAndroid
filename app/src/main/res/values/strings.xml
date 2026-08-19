@@ -244,6 +244,7 @@
     <string name="offer_decline">Decline</string>
     <string name="offer_waiting">Waiting for answers…</string>
     <string name="offer_declined_fmt">%1$s declined the offer</string>
+    <string name="offer_cancel">Cancel</string>
     <string name="game_btn_auto">Auto</string>
     <string name="game_btn_score">Score</string>
     <string name="learn_exit_q">Exit the tutorial? Your position will not be saved.</string>

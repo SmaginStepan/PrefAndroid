@@ -224,59 +224,100 @@ internal fun AgreementUi(
         else -> ctx.getString(R.string.offer_down_fmt, contract - n, n)
     }
 
+    // Like game declaring: tapping an option only selects it, and the two
+    // buttons under the menu confirm (send or go to the split step) or cancel.
     if (offerStep == 1 && agreements.canOffer(info)) {
-        LazyColumn(
-            modifier = Modifier
-                .offset(x = ux(139.0), y = uy(37.0))
-                .width(ux(203.0)).height(uy(286.0))
-                .background(Color(0x99123B16))
-                .border(1.dp, Color(0x992E7D32))
-        ) {
-            if (agreements.restMineAvailable(info)) {
-                item {
+        val options = agreements.declarerOptions(info)
+        val restMine = agreements.restMineAvailable(info)
+        if (options.isEmpty()) {
+            // раcпасы: «остальные мои» is the only agreement — no list at all
+            if (restMine) {
+                Button(
+                    onClick = { onStep(0, 0); onRestMine() },
+                    modifier = Modifier.offset(x = ux(152.0), y = uy(330.0)).width(ux(176.0))
+                ) {
+                    Text(stringResource(R.string.offer_rest_mine), maxLines = 1)
+                }
+                Button(
+                    onClick = { onStep(0, 0) },
+                    modifier = Modifier.offset(x = ux(152.0), y = uy(385.0)).width(ux(176.0))
+                ) {
+                    Text(stringResource(R.string.offer_cancel), maxLines = 1)
+                }
+            }
+        } else {
+            // Int.MIN_VALUE = nothing selected, -1 = «остальные мои»
+            val sel = remember(offerStep) { mutableStateOf(Int.MIN_VALUE) }
+            LazyColumn(
+                modifier = Modifier
+                    .offset(x = ux(139.0), y = uy(37.0))
+                    .width(ux(203.0)).height(uy(286.0))
+                    .background(Color(0x99123B16))
+                    .border(1.dp, Color(0x992E7D32))
+            ) {
+                if (restMine) {
+                    item {
+                        Text(
+                            text = stringResource(R.string.offer_rest_mine),
+                            color = if (sel.value == -1) AccentYellow else Color.White,
+                            fontSize = 18.sp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { sel.value = -1 }
+                                .padding(10.dp)
+                        )
+                    }
+                }
+                items(options) { n ->
                     Text(
-                        text = stringResource(R.string.offer_rest_mine),
-                        color = Color.White,
+                        text = declarerLabel(n),
+                        color = if (sel.value == n) AccentYellow else Color.White,
                         fontSize = 18.sp,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
-                                onStep(0, 0)
-                                onRestMine()
-                            }
+                            .clickable { sel.value = n }
                             .padding(10.dp)
                     )
                 }
             }
-            items(agreements.declarerOptions(info)) { n ->
+            val chosen = sel.value != Int.MIN_VALUE
+            Button(
+                onClick = {
+                    val n = sel.value
+                    if (n == -1) {
+                        onStep(0, 0); onRestMine()
+                    } else {
+                        val surrender = !miser && info.contractor == 0 && n == contract - 3
+                        if (miser || surrender || agreements.whisters(info).size != 2) {
+                            onStep(0, 0)
+                            onOffer(agreements.buildTaken(info, n))
+                        } else onStep(2, n)
+                    }
+                },
+                enabled = chosen,
+                modifier = Modifier.offset(x = ux(152.0), y = uy(330.0)).width(ux(176.0))
+            ) {
                 Text(
-                    text = declarerLabel(n),
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            val surrender = !miser && info.contractor == 0 && n == contract - 3
-                            if (miser || surrender || agreements.whisters(info).size != 2) {
-                                onStep(0, 0)
-                                onOffer(agreements.buildTaken(info, n))
-                            } else onStep(2, n)
-                        }
-                        .padding(10.dp)
+                    text = when {
+                        !chosen -> stringResource(R.string.game_btn_not_selected)
+                        sel.value == -1 -> stringResource(R.string.offer_rest_mine)
+                        else -> declarerLabel(sel.value)
+                    },
+                    maxLines = 1
                 )
             }
-            item {
-                Text(
-                    text = stringResource(R.string.close),
-                    color = Color(0xFFFFB100),
-                    fontSize = 16.sp,
-                    modifier = Modifier.fillMaxWidth().clickable { onStep(0, 0) }.padding(10.dp)
-                )
+            Button(
+                onClick = { onStep(0, 0) },
+                modifier = Modifier.offset(x = ux(152.0), y = uy(385.0)).width(ux(176.0))
+            ) {
+                Text(stringResource(R.string.offer_cancel), maxLines = 1)
             }
         }
     }
     if (offerStep == 2) {
         val w = agreements.whisters(info)
+        val splits = agreements.whistSplits(info, offerN)
+        val sel = remember(offerStep) { mutableStateOf<Pair<Int, Int>?>(null) }
         LazyColumn(
             modifier = Modifier
                 .offset(x = ux(139.0), y = uy(37.0))
@@ -287,33 +328,44 @@ internal fun AgreementUi(
             item {
                 Text(
                     text = declarerLabel(offerN),
-                    color = Color(0xFFFFB100),
+                    color = AccentYellow,
                     fontSize = 16.sp,
                     modifier = Modifier.fillMaxWidth().padding(10.dp)
                 )
             }
-            items(agreements.whistSplits(info, offerN)) { split ->
+            items(splits) { split ->
                 Text(
                     text = "${info.names[w[0]]} ${split.first} · ${info.names[w[1]]} ${split.second}",
-                    color = Color.White,
+                    color = if (sel.value == split) AccentYellow else Color.White,
                     fontSize = 18.sp,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable {
-                            onStep(0, 0)
-                            onOffer(agreements.buildTaken(info, offerN, split))
-                        }
+                        .clickable { sel.value = split }
                         .padding(10.dp)
                 )
             }
-            item {
-                Text(
-                    text = stringResource(R.string.close),
-                    color = Color(0xFFFFB100),
-                    fontSize = 16.sp,
-                    modifier = Modifier.fillMaxWidth().clickable { onStep(1, 0) }.padding(10.dp)
-                )
-            }
+        }
+        Button(
+            onClick = {
+                sel.value?.let { split ->
+                    onStep(0, 0)
+                    onOffer(agreements.buildTaken(info, offerN, split))
+                }
+            },
+            enabled = sel.value != null,
+            modifier = Modifier.offset(x = ux(152.0), y = uy(330.0)).width(ux(176.0))
+        ) {
+            Text(
+                text = sel.value?.let { "${info.names[w[0]]} ${it.first} · ${info.names[w[1]]} ${it.second}" }
+                    ?: stringResource(R.string.game_btn_not_selected),
+                maxLines = 1
+            )
+        }
+        Button(
+            onClick = { onStep(1, 0) },
+            modifier = Modifier.offset(x = ux(152.0), y = uy(385.0)).width(ux(176.0))
+        ) {
+            Text(stringResource(R.string.offer_cancel), maxLines = 1)
         }
     }
 

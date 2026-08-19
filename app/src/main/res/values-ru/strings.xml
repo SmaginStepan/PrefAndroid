@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Преферанс</string>
     <string name="menu_subtitle">мастер</string>
@@ -244,6 +244,7 @@
     <string name="offer_decline">Отклонить</string>
     <string name="offer_waiting">Ожидание ответа…</string>
     <string name="offer_declined_fmt">%1$s отклонил предложение</string>
+    <string name="offer_cancel">Отмена</string>
     <string name="game_btn_auto">Авто</string>
     <string name="game_btn_score">Пуля</string>
     <string name="learn_exit_q">Выйти из обучения? Позиция не сохранится.</string>
