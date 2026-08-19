@@ -245,7 +245,7 @@
     <string name="offer_waiting">Esperando respuesta…</string>
     <string name="offer_declined_fmt">%1$s rechazó la propuesta</string>
     <string name="offer_cancel">Cancelar</string>
-    <string name="game_btn_auto">Confirmación\nautomática</string>
+    <string name="game_btn_auto">Auto\nconfirmar</string>
     <string name="game_btn_score">Pulka…</string>
     <string name="learn_exit_q">¿Salir del tutorial? La posición no se guardará.</string>
     <string name="learn_exit_yes">Salir</string>
