@@ -67,16 +67,33 @@ class CardImages(private val ctx: Context) {
 
     fun get(card: Card?): ImageBitmap {
         val cid = if (card == null) "0" else "${card.value}${"scdh"[card.coatColor]}"
+        // a card never fills more than about a quarter of the screen
+        val dm = ctx.resources.displayMetrics
         return cache.getOrPut(cid) {
-            ctx.assets.open("cards/$cid.png").use {
-                BitmapFactory.decodeStream(it).asImageBitmap()
-            }
+            decodeAsset("cards/$cid.png", dm.widthPixels / 4, dm.heightPixels / 4)
         }
     }
 
-    fun background(): ImageBitmap = cache.getOrPut("greencloth") {
-        ctx.assets.open("cards/greencloth.png").use {
-            BitmapFactory.decodeStream(it).asImageBitmap()
+    fun background(): ImageBitmap {
+        val dm = ctx.resources.displayMetrics
+        return cache.getOrPut("greencloth") {
+            decodeAsset("cards/greencloth.png", dm.widthPixels, dm.heightPixels)
+        }
+    }
+
+    /** Decodes with [BitmapFactory.Options.inSampleSize] chosen from the image
+     *  bounds, so oversized art never loads at full resolution. The current
+     *  assets are smaller than any target and decode unsampled. */
+    private fun decodeAsset(name: String, targetW: Int, targetH: Int): ImageBitmap {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        ctx.assets.open(name).use { BitmapFactory.decodeStream(it, null, bounds) }
+        var sample = 1
+        while (bounds.outWidth / (sample * 2) >= targetW &&
+            bounds.outHeight / (sample * 2) >= targetH
+        ) sample *= 2
+        val opts = BitmapFactory.Options().apply { inSampleSize = sample }
+        return ctx.assets.open(name).use {
+            BitmapFactory.decodeStream(it, null, opts)!!.asImageBitmap()
         }
     }
 }
