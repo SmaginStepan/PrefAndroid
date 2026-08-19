@@ -245,8 +245,8 @@
     <string name="offer_waiting">Ожидание ответа…</string>
     <string name="offer_declined_fmt">%1$s отклонил предложение</string>
     <string name="offer_cancel">Отмена</string>
-    <string name="game_btn_auto">Авто</string>
-    <string name="game_btn_score">Пуля</string>
+    <string name="game_btn_auto">Авто\nподтверждение</string>
+    <string name="game_btn_score">Пуля…</string>
     <string name="learn_exit_q">Выйти из обучения? Позиция не сохранится.</string>
     <string name="learn_exit_yes">Выйти</string>
     <string name="mp_tap_to_copy">Код комнаты — нажмите, чтобы скопировать</string>

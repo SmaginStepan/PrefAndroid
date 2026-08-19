@@ -880,6 +880,8 @@ fun GameScreen(
                         Text(
                             stringResource(R.string.game_btn_auto),
                             fontSize = 12.sp,
+                            lineHeight = 13.sp,
+                            textAlign = TextAlign.Center,
                             color = if (vm.autoConfirmDeal) AccentYellow else Color.White
                         )
                     }

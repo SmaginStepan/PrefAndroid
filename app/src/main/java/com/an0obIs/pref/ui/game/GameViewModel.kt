@@ -636,6 +636,21 @@ class GameViewModel : ViewModel() {
     private suspend fun processAnimations(queue: ArrayDeque<Game.Animation> = game.animations) {
         while (true) {
             val a = if (queue.isNotEmpty()) queue.removeFirst() else break
+            if (a.take) {
+                // a trick closed without a confirm stop: collect what is still
+                // lying on the table toward the taker (skip if already clean)
+                val lying = field.filter { it.isInPlay && it.card != null } +
+                        pinnedOverlays.filter { it.isInPlay && it.card != null }
+                if (lying.isNotEmpty()) {
+                    val (tx, ty) = TableLayout.outOfPlayCoords(a.player)
+                    field = field.filter { !it.isInPlay }
+                    pinnedOverlays.removeAll { it.isInPlay }
+                    trickAnim = TrickAnim(lying, tx, ty)
+                    runAnim()
+                    trickAnim = null
+                }
+                continue
+            }
             val card = a.card
             if (card != null) {
                 val from = field.firstOrNull { it.hand == a.player && it.card?.id == card.id }

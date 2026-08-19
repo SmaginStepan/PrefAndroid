@@ -352,6 +352,8 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
                     Text(
                         stringResource(R.string.game_btn_auto),
                         fontSize = 12.sp,
+                        lineHeight = 13.sp,
+                        textAlign = TextAlign.Center,
                         color = if (vm.autoConfirmDeal) Color(0xFFFFB100) else Color.White
                     )
                 }

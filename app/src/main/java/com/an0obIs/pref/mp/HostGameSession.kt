@@ -133,9 +133,17 @@ class HostGameSession(
                 game.prikupClose()
                 game.next()
             }
-            GamePhase.EndTurn -> while (game.phase == GamePhase.EndTurn) {
-                game.turnClose()
-                game.next()
+            GamePhase.EndTurn -> {
+                // let the host UI collect the trick even when no stop was shown
+                // (the host was the mover and every other seat is a bot)
+                game.animations.addLast(Game.Animation().also {
+                    it.take = true
+                    it.player = game.playerToTake
+                })
+                while (game.phase == GamePhase.EndTurn) {
+                    game.turnClose()
+                    game.next()
+                }
             }
             GamePhase.EndPlay -> while (game.phase == GamePhase.EndPlay) {
                 game.endConfirm()

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Preferans</string>
     <string name="menu_subtitle">master</string>
@@ -245,8 +245,8 @@
     <string name="offer_waiting">Waiting for answers…</string>
     <string name="offer_declined_fmt">%1$s declined the offer</string>
     <string name="offer_cancel">Cancel</string>
-    <string name="game_btn_auto">Auto</string>
-    <string name="game_btn_score">Score</string>
+    <string name="game_btn_auto">Auto\nconfirm</string>
+    <string name="game_btn_score">Score…</string>
     <string name="learn_exit_q">Exit the tutorial? Your position will not be saved.</string>
     <string name="learn_exit_yes">Exit</string>
     <string name="mp_tap_to_copy">Room code — tap to copy</string>

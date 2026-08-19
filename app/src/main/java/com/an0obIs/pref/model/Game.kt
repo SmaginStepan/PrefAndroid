@@ -101,6 +101,11 @@ class Game {
         var card: Card? = null
         var bid: Bid? = null
         var text: String? = null
+
+        /** Marker: the trick was closed and [player] collects it. Queued by the
+         *  hosted session when a trick closes without a confirm stop (the local
+         *  player was the mover), so the UI still animates the collection. */
+        var take: Boolean = false
     }
 
     @Transient
