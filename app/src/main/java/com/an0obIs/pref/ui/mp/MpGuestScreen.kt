@@ -329,31 +329,31 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
             }
         }
 
-        // bottom-left action buttons (parity with the host table)
-        Row(
-            modifier = Modifier.align(Alignment.BottomStart).padding(6.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            if (st.takes != null && st.info.showTricksBtn) {
-                OutlinedButton(onClick = { vm.showTakes = true }) {
-                    Text(stringResource(R.string.game_btn_tricks), fontSize = 12.sp, color = Color.White)
-                }
-            }
-            if (st.standings != null && st.scores == null) {
-                OutlinedButton(onClick = { vm.scorePeek = true }) {
-                    Text(stringResource(R.string.game_btn_score), fontSize = 12.sp, color = Color.White)
-                }
-            }
-            OutlinedButton(onClick = { vm.autoConfirmDeal = !vm.autoConfirmDeal }) {
-                Text(
-                    stringResource(R.string.game_btn_auto),
-                    fontSize = 12.sp,
-                    color = if (vm.autoConfirmDeal) Color(0xFFFFB100) else Color.White
-                )
-            }
+        // bottom-left action buttons (parity with the host table); the offer
+        // button sits on its own line right above the row
+        Column(modifier = Modifier.align(Alignment.BottomStart).padding(6.dp)) {
             if (com.an0obIs.pref.mp.Agreements.canOffer(st.info)) {
                 OutlinedButton(onClick = { offerStep = 1 }) {
                     Text(stringResource(R.string.game_btn_offer), fontSize = 12.sp, color = Color.White)
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (st.takes != null && st.info.showTricksBtn) {
+                    OutlinedButton(onClick = { vm.showTakes = true }) {
+                        Text(stringResource(R.string.game_btn_tricks), fontSize = 12.sp, color = Color.White)
+                    }
+                }
+                if (st.standings != null && st.scores == null) {
+                    OutlinedButton(onClick = { vm.scorePeek = true }) {
+                        Text(stringResource(R.string.game_btn_score), fontSize = 12.sp, color = Color.White)
+                    }
+                }
+                OutlinedButton(onClick = { vm.autoConfirmDeal = !vm.autoConfirmDeal }) {
+                    Text(
+                        stringResource(R.string.game_btn_auto),
+                        fontSize = 12.sp,
+                        color = if (vm.autoConfirmDeal) Color(0xFFFFB100) else Color.White
+                    )
                 }
             }
         }

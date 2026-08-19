@@ -754,40 +754,42 @@ fun GameScreen(
             }
         }
 
-        // Bottom-left action buttons
-        Row(
+        // Bottom-left action buttons; the offer button sits on its own line
+        // right above the row, below the hint bubble
+        Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(6.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                .padding(6.dp)
         ) {
-            if (!vm.hosted) {
-                OutlinedButton(onClick = { vm.requestAdvice() }) {
-                    Text(stringResource(R.string.game_btn_hint), fontSize = 12.sp, color = Color.White)
-                }
-            }
-            if (info.showTricksBtn) {
-                OutlinedButton(onClick = { vm.openTricks() }) {
-                    Text(stringResource(R.string.game_btn_tricks), fontSize = 12.sp, color = Color.White)
-                }
-            }
-            if (info.phase != GamePhase.NotStarted && vm.scoresOverlay == null) {
-                OutlinedButton(onClick = { vm.toggleScorePeek() }) {
-                    Text(stringResource(R.string.game_btn_score), fontSize = 12.sp, color = Color.White)
-                }
-            }
-            if (vm.hosted) {
-                OutlinedButton(onClick = { vm.toggleAutoConfirmDeal() }) {
-                    Text(
-                        stringResource(R.string.game_btn_auto),
-                        fontSize = 12.sp,
-                        color = if (vm.autoConfirmDeal) AccentYellow else Color.White
-                    )
-                }
-            }
             if (com.an0obIs.pref.mp.Agreements.canOffer(info)) {
                 OutlinedButton(onClick = { offerStep = 1 }) {
                     Text(stringResource(R.string.game_btn_offer), fontSize = 12.sp, color = Color.White)
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (!vm.hosted) {
+                    OutlinedButton(onClick = { vm.requestAdvice() }) {
+                        Text(stringResource(R.string.game_btn_hint), fontSize = 12.sp, color = Color.White)
+                    }
+                }
+                if (info.showTricksBtn) {
+                    OutlinedButton(onClick = { vm.openTricks() }) {
+                        Text(stringResource(R.string.game_btn_tricks), fontSize = 12.sp, color = Color.White)
+                    }
+                }
+                if (info.phase != GamePhase.NotStarted && vm.scoresOverlay == null) {
+                    OutlinedButton(onClick = { vm.toggleScorePeek() }) {
+                        Text(stringResource(R.string.game_btn_score), fontSize = 12.sp, color = Color.White)
+                    }
+                }
+                if (vm.hosted) {
+                    OutlinedButton(onClick = { vm.toggleAutoConfirmDeal() }) {
+                        Text(
+                            stringResource(R.string.game_btn_auto),
+                            fontSize = 12.sp,
+                            color = if (vm.autoConfirmDeal) AccentYellow else Color.White
+                        )
+                    }
                 }
             }
         }
