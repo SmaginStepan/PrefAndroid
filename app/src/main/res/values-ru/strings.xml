@@ -230,7 +230,7 @@
     <string name="mp_start">Начать игру</string>
     <string name="mp_add_bot">Добавить бота</string>
     <string name="mp_you_deal">Вы сдаёте. Ход: %1$s</string>
-    <string name="mp_save_finish">Завершить…</string>
+    <string name="mp_save_finish">Завершить</string>
     <string name="default_player_name">Игрок</string>
     <string name="game_btn_offer">Предложить…</string>
     <string name="offer_own_fmt">При своих (%1$d)</string>

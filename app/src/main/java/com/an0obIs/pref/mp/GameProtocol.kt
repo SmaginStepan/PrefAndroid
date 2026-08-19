@@ -42,7 +42,9 @@ data class ScoreSnap(
     val visty: List<List<Int>>,
     val limit: Int,
     /** who deals the next deal (viewer-relative); lets a guest save a resumable pulka */
-    val dealer: Int = 0
+    val dealer: Int = 0,
+    /** Leningrad scoring doubles the pool conversion in the final settlement */
+    val leningrad: Boolean = false
 )
 
 /** A pending agreement offer, viewer-relative. */

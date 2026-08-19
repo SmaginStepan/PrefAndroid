@@ -114,7 +114,8 @@ object RemoteViews {
             },
             limit = calc.limit,
             // at ScoreView calc.dealer already points at the next deal's dealer
-            dealer = (calc.dealer - viewer + n) % n
+            dealer = (calc.dealer - viewer + n) % n,
+            leningrad = calc.rules.scoring == com.an0obIs.pref.model.ScoreType.Leningrad
         )
     }
 

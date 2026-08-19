@@ -5,8 +5,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -125,46 +127,93 @@ fun ScoreOverlay(
         }
 
         val btnPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp)
-        Button(
-            onClick = onTap,
-            contentPadding = btnPadding,
-            modifier = Modifier.align(Alignment.BottomStart).padding(4.dp).height(30.dp)
+        var showResults by remember(snap) { mutableStateOf(false) }
+        Row(
+            modifier = Modifier.align(Alignment.BottomCenter).padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Text(stringResource(R.string.sheet_continue), fontSize = 11.sp, maxLines = 1)
-        }
-
-        if (onFinish != null) {
-            OutlinedButton(
-                onClick = onFinish,
+            Button(
+                onClick = onTap,
                 contentPadding = btnPadding,
-                modifier = Modifier.align(Alignment.BottomCenter).padding(4.dp).height(30.dp)
+                modifier = Modifier.height(30.dp)
+            ) {
+                Text(stringResource(R.string.sheet_continue), fontSize = 11.sp, maxLines = 1)
+            }
+            OutlinedButton(
+                onClick = { showResults = true },
+                contentPadding = btnPadding,
+                modifier = Modifier.height(30.dp)
             ) {
                 Text(
-                    text = stringResource(R.string.mp_save_finish),
+                    text = stringResource(R.string.sheet_score_btn),
                     fontSize = 11.sp,
                     maxLines = 1,
                     color = Color.White
                 )
             }
+            if (onFinish != null) {
+                OutlinedButton(
+                    onClick = onFinish,
+                    contentPadding = btnPadding,
+                    modifier = Modifier.height(30.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.mp_save_finish),
+                        fontSize = 11.sp,
+                        maxLines = 1,
+                        color = Color.White
+                    )
+                }
+            }
+            if (onSave != null) {
+                var saved by remember(snap) { mutableStateOf(false) }
+                OutlinedButton(
+                    onClick = { saved = onSave() },
+                    enabled = !saved,
+                    contentPadding = btnPadding,
+                    modifier = Modifier.height(30.dp)
+                ) {
+                    Text(
+                        text = stringResource(
+                            if (saved) R.string.game_score_saved else R.string.game_btn_save_score
+                        ),
+                        fontSize = 11.sp,
+                        maxLines = 1,
+                        color = Color.White
+                    )
+                }
+            }
         }
 
-        if (onSave != null) {
-            var saved by remember(snap) { mutableStateOf(false) }
-            OutlinedButton(
-                onClick = { saved = onSave() },
-                enabled = !saved,
-                contentPadding = btnPadding,
-                modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp).height(30.dp)
+        // the same final-settlement view the single-player sheet opens
+        if (showResults) {
+            val calc = remember(snap) { snapToCalc(snap) }
+            androidx.compose.foundation.layout.Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFF103814))
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { /* swallow taps so they don't hit the sheet below */ }
             ) {
-                Text(
-                    text = stringResource(
-                        if (saved) R.string.game_score_saved else R.string.game_btn_save_score
-                    ),
-                    fontSize = 11.sp,
-                    maxLines = 1,
-                    color = Color.White
-                )
+                com.an0obIs.pref.ui.calc.CalcResultsScreen(calc) { showResults = false }
             }
         }
     }
+}
+
+/** The snapshot as a throwaway Calculation, enough for the final settlement. */
+private fun snapToCalc(snap: ScoreSnap): com.an0obIs.pref.model.Calculation {
+    val n = snap.names.size
+    val c = com.an0obIs.pref.model.Calculation(n, snap.limit)
+    if (snap.leningrad) c.rules.scoring = com.an0obIs.pref.model.ScoreType.Leningrad
+    for (i in 0 until n) {
+        c.scores[i].name = snap.names[i]
+        c.scores[i].pulya = snap.pulya[i]
+        c.scores[i].gora = snap.gora[i]
+        for (j in 0 until n)
+            if (i != j) c.scores[i].visty[j] = snap.visty[i][j]
+    }
+    return c
 }
