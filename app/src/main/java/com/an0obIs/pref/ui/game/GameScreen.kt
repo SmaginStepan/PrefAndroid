@@ -198,19 +198,27 @@ internal val TightBtnPad = PaddingValues(horizontal = 6.dp, vertical = 8.dp)
  * button. Covers every localization and player names without per-label sizes.
  */
 @Composable
-internal fun FitLine(text: String) {
-    val base = androidx.compose.material3.LocalTextStyle.current.fontSize
+internal fun FitLine(
+    text: String,
+    color: Color = Color.Unspecified,
+    baseSize: TextUnit = TextUnit.Unspecified,
+    modifier: Modifier = Modifier
+) {
+    val base = (if (baseSize == TextUnit.Unspecified)
+        androidx.compose.material3.LocalTextStyle.current.fontSize else baseSize)
         .let { if (it == TextUnit.Unspecified) 14.sp else it }
     val scale = remember(text) { mutableStateOf(1f) }
     Text(
         text = text,
+        color = color,
         maxLines = 1,
         softWrap = false,
         overflow = TextOverflow.Clip,
         fontSize = base * scale.value,
         onTextLayout = {
             if (it.hasVisualOverflow && scale.value > 0.55f) scale.value *= 0.9f
-        }
+        },
+        modifier = modifier
     )
 }
 
@@ -286,10 +294,10 @@ internal fun AgreementUi(
             ) {
                 if (restMine) {
                     item {
-                        Text(
+                        FitLine(
                             text = stringResource(R.string.offer_rest_mine),
                             color = if (sel.value == -1) AccentYellow else Color.White,
-                            fontSize = 18.sp,
+                            baseSize = 18.sp,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { sel.value = -1 }
@@ -298,10 +306,10 @@ internal fun AgreementUi(
                     }
                 }
                 items(options) { n ->
-                    Text(
+                    FitLine(
                         text = declarerLabel(n),
                         color = if (sel.value == n) AccentYellow else Color.White,
-                        fontSize = 18.sp,
+                        baseSize = 18.sp,
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { sel.value = n }
@@ -356,18 +364,18 @@ internal fun AgreementUi(
                 .border(1.dp, Color(0x992E7D32))
         ) {
             item {
-                Text(
+                FitLine(
                     text = declarerLabel(offerN),
                     color = AccentYellow,
-                    fontSize = 16.sp,
+                    baseSize = 16.sp,
                     modifier = Modifier.fillMaxWidth().padding(10.dp)
                 )
             }
             items(splits) { split ->
-                Text(
+                FitLine(
                     text = "${info.names[w[0]]} ${split.first} · ${info.names[w[1]]} ${split.second}",
                     color = if (sel.value == split) AccentYellow else Color.White,
-                    fontSize = 18.sp,
+                    baseSize = 18.sp,
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { sel.value = split }
@@ -752,10 +760,10 @@ fun GameScreen(
             ) {
                 items(reversed) { bid ->
                     val selected = vm.selectedBid === bid
-                    Text(
+                    FitLine(
                         text = GameTexts.bidTitle(ctx, bid),
                         color = if (selected) AccentYellow else Color.White,
-                        fontSize = 20.sp,
+                        baseSize = 20.sp,
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { vm.onChoiceSelected(bid) }
