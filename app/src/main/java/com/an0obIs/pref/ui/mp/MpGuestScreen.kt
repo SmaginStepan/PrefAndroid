@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -88,6 +89,179 @@ class GuestGameViewModel : ViewModel() {
         }
     }
 
+    // ---- snapshot-diff animations: the guest has no engine, so card flights,
+    // trick collection and say bubbles are reconstructed from consecutive
+    // host states ------------------------------------------------------------
+
+    /** The field being drawn while a transition animates; null = state.field. */
+    var dispField by mutableStateOf<List<com.an0obIs.pref.ui.game.PlacedCard>?>(null)
+        private set
+    var cardAnim by mutableStateOf<com.an0obIs.pref.ui.game.CardAnim?>(null)
+        private set
+    var trickAnim by mutableStateOf<com.an0obIs.pref.ui.game.TrickAnim?>(null)
+        private set
+    var say by mutableStateOf<com.an0obIs.pref.ui.game.SayEvent?>(null)
+        private set
+    var animProgress by mutableStateOf(0f)
+        private set
+
+    /** Tricks already shown collected on this table (visual, not engine). */
+    private var seenTricks = 0
+
+    private suspend fun runAnim(durationMs: Long = 360) {
+        val start = android.os.SystemClock.uptimeMillis()
+        animProgress = 0f
+        while (true) {
+            val t = (android.os.SystemClock.uptimeMillis() - start).toFloat() / durationMs
+            if (t >= 1f) break
+            animProgress = t
+            kotlinx.coroutines.delay(16)
+        }
+        animProgress = 1f
+    }
+
+    /** Applies a new state, first animating the difference from the last one. */
+    suspend fun applyState(s: GameMsg.State, ctx: android.content.Context) {
+        val prev = state
+        if (prev != null) {
+            try {
+                animateTransition(prev, s, ctx)
+            } catch (e: Exception) {
+                android.util.Log.w("Pref", "guest anim skipped", e)
+            } finally {
+                cardAnim = null
+                trickAnim = null
+                say = null
+            }
+        }
+        onState(s)
+        dispField = null
+    }
+
+    private suspend fun sayOut(e: com.an0obIs.pref.ui.game.SayEvent) {
+        say = e
+        runAnim(960)
+        kotlinx.coroutines.delay(300)
+        say = null
+    }
+
+    private suspend fun animateTransition(prev: GameMsg.State, s: GameMsg.State, ctx: android.content.Context) {
+        val oldTricks = prev.info.taken.sum()
+        val newTricks = s.info.taken.sum()
+        // a fresh deal (or a whole game) replaced the table: just snap
+        if (newTricks < oldTricks ||
+            (s.info.phase == com.an0obIs.pref.model.GamePhase.Negotiations &&
+                    prev.info.phase != com.an0obIs.pref.model.GamePhase.Negotiations)
+        ) {
+            seenTricks = 0
+            return
+        }
+        if (showLayout || s.ended) return
+
+        // bid and whist announcements; Bid has no structural equals, so
+        // compare by value or every snapshot would replay old announcements
+        fun sameBid(a: Game.Bid?, b: Game.Bid?): Boolean =
+            (a == null && b == null) || (a != null && b != null &&
+                    a.pas == b.pas && a.miser == b.miser &&
+                    a.contract == b.contract && a.trump == b.trump)
+        for (p in 0..2) {
+            val nb = s.info.curentBids[p]
+            if (nb != null && !sameBid(nb, prev.info.curentBids[p]))
+                sayOut(com.an0obIs.pref.ui.game.SayEvent(p, nb, null))
+        }
+        for (p in 0..2) {
+            val nv = s.info.isVister[p]
+            if (nv != null && nv != prev.info.isVister[p])
+                sayOut(
+                    com.an0obIs.pref.ui.game.SayEvent(
+                        p, null,
+                        ctx.getString(if (nv) R.string.game_say_whist else R.string.game_say_pass)
+                    )
+                )
+        }
+
+        var field = prev.field
+        fun lying() = field.filter { it.isInPlay && it.card != null }
+
+        suspend fun flyCard(hand: Int, card: Card, tx: Double, ty: Double) {
+            val from = field.firstOrNull { !it.isInPlay && it.card?.id == card.id }
+                ?: field.firstOrNull { !it.isInPlay && it.card == null && it.hand == hand }
+            val (fx, fy) = if (from != null) Pair(from.x, from.y)
+            else TableLayout.hiddenStartCoords(hand)
+            if (from != null) field = field - from
+            dispField = field
+            cardAnim = com.an0obIs.pref.ui.game.CardAnim(card, fx, fy, tx, ty)
+            runAnim()
+            cardAnim = null
+            field = field + com.an0obIs.pref.ui.game.PlacedCard(
+                card = card, hand = hand, x = tx, y = ty, isInPlay = true
+            )
+            dispField = field
+        }
+
+        suspend fun collect(taker: Int) {
+            val cards = lying()
+            if (cards.isEmpty()) return
+            val (tx, ty) = TableLayout.outOfPlayCoords(taker)
+            field = field.filter { !it.isInPlay }
+            dispField = field
+            trickAnim = com.an0obIs.pref.ui.game.TrickAnim(cards, tx, ty)
+            runAnim()
+            trickAnim = null
+        }
+
+        // -1/0/1 seat codes of TakeSnap -> viewer-relative hands 1/0/2
+        fun handOf(code: Int) = when (code) {
+            -1 -> 1
+            1 -> 2
+            else -> 0
+        }
+
+        fun cardOf(t: com.an0obIs.pref.mp.TakeSnap, hand: Int): Card? = when (hand) {
+            1 -> t.prev
+            2 -> t.next
+            else -> t.my
+        }
+
+        if (seenTricks > newTricks) seenTricks = newTricks // safety after resync
+
+        // tricks completed since the last state: finish their plays, collect
+        val takes = s.takes
+        if (newTricks > seenTricks && takes != null && takes.size >= newTricks) {
+            for (t in seenTricks until newTricks) {
+                val take = takes[t]
+                val lead = handOf(take.first)
+                for (i in 0..2) {
+                    val h = (lead + i) % 3
+                    val card = cardOf(take, h) ?: continue
+                    if (lying().any { it.card!!.id == card.id }) continue
+                    val (tx, ty) = TableLayout.inPlayCoords(h)
+                    flyCard(h, card, tx, ty)
+                }
+                collect(handOf(take.taker))
+            }
+            seenTricks = newTricks
+        }
+
+        val targetLying = s.field.filter { it.isInPlay && it.card != null }
+
+        // this viewer confirmed the finished trick: the host hides it from
+        // their next snapshot before the engine counts it — collect it now
+        if (targetLying.isEmpty() && lying().isNotEmpty() &&
+            newTricks == oldTricks && seenTricks == newTricks &&
+            s.info.phase == com.an0obIs.pref.model.GamePhase.EndTurn
+        ) {
+            collect(s.info.playerToTake)
+            seenTricks = newTricks + 1
+        }
+
+        // cards newly played into the current trick
+        val added = targetLying
+            .filter { n -> lying().none { it.card!!.id == n.card!!.id } }
+            .sortedBy { (it.hand - prev.info.controller + 3) % 3 }
+        for (pc in added) flyCard(pc.hand, pc.card!!, pc.x, pc.y)
+    }
+
     /** Save the host's score snapshot as a regular pulka file (guest view: self = player 0). */
     fun saveScoreSheet(snap: com.an0obIs.pref.mp.ScoreSnap): Boolean = try {
         val n = snap.names.size
@@ -127,7 +301,7 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
                 val msg = gameJson.decodeFromJsonElement(GameMsg.serializer(), el)
                 if (msg is GameMsg.State) {
                     val wasAuto = vm.autoConfirmDeal
-                    vm.onState(msg)
+                    vm.applyState(msg, ctx)
                     // auto-confirm switched itself off at the score sheet:
                     // let the host show us in the waiting list again
                     if (wasAuto && !vm.autoConfirmDeal) act(GameMsg.Act(autoMode = false))
@@ -186,7 +360,9 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
             else -> strings.hint
         }
 
-        val shownField = if (vm.showLayout) st.layout ?: st.field else st.field
+        val shownField =
+            if (vm.showLayout) st.layout ?: st.field
+            else vm.dispField ?: st.field
         for (pc in shownField) {
             val selected = pc.card != null && vm.discardSel.any { it.id == pc.card!!.id }
             Image(
@@ -222,6 +398,60 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
                         }
                     }
             )
+        }
+
+        // flying card
+        vm.cardAnim?.let { anim ->
+            val t = vm.animProgress
+            val x = anim.fromX + (anim.toX - anim.fromX) * t
+            val y = anim.fromY + (anim.toY - anim.fromY) * t
+            Image(
+                bitmap = images.get(anim.card),
+                filterQuality = FilterQuality.High,
+                contentDescription = null,
+                modifier = Modifier.offset(x = ux(x), y = uy(y)).size(cardSize)
+            )
+        }
+
+        // trick collection (cards fly to the taker and shrink)
+        vm.trickAnim?.let { anim ->
+            val t = vm.animProgress
+            val s = cardSize * (1f - t)
+            for (pc in anim.cards) {
+                val x = pc.x + (anim.toX - pc.x) * t
+                val y = pc.y + (anim.toY - pc.y) * t
+                Image(
+                    bitmap = images.get(pc.card),
+                    filterQuality = FilterQuality.High,
+                    contentDescription = null,
+                    modifier = Modifier.offset(x = ux(x), y = uy(y)).size(s)
+                )
+            }
+        }
+
+        // say bubble: grows while flying from the sayer to the table center
+        vm.say?.let { say ->
+            val t = vm.animProgress
+            val move = 1f - (1f - t) * (1f - t)
+            val (sx, sy) = when (say.player) {
+                1 -> 80.0 to 95.0
+                2 -> 400.0 to 95.0
+                else -> 240.0 to 600.0
+            }
+            val cx = sx + (240.0 - sx) * move
+            val cy = sy + (300.0 - sy) * move
+            Box(
+                modifier = Modifier.offset(x = ux(cx - 150.0), y = uy(cy)).width(ux(300.0)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = GameTexts.sayText(ctx, say),
+                    color = Color(0xFFFFB100),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = (15 + 19 * t).sp,
+                    maxLines = 1
+                )
+            }
         }
 
         Text(strings.p1, color = Color.White, fontSize = 13.sp,
