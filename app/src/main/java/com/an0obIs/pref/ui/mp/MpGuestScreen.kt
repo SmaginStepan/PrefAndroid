@@ -501,18 +501,25 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
         // bid / contract menu
         if (ask != null && (ask.kind == "bid" || ask.kind == "contract") && !ask.bids.isNullOrEmpty()) {
             val choices = ask.bids.filter { !it.pas }
+            val reversed = remember(choices) { choices.reversed() }
+            val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+            // open at the bottom, where the lowest (likeliest) bids sit
+            LaunchedEffect(reversed) {
+                if (reversed.isNotEmpty()) listState.scrollToItem(reversed.size - 1)
+            }
             LazyColumn(
+                state = listState,
                 modifier = Modifier
                     .offset(x = ux(139.0), y = uy(37.0))
                     .width(ux(203.0)).height(uy(286.0))
                     .background(Color(0x66123B16))
                     .border(1.dp, Color(0x662E7D32))
             ) {
-                items(choices.reversed()) { bid ->
-                    Text(
+                items(reversed) { bid ->
+                    com.an0obIs.pref.ui.game.FitLine(
                         text = GameTexts.bidTitle(ctx, bid),
                         color = if (vm.selectedBid === bid) Color(0xFFFFB100) else Color.White,
-                        fontSize = 20.sp,
+                        baseSize = 20.sp,
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { vm.selectedBid = bid }
