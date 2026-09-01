@@ -34,17 +34,20 @@ object GlobalScores {
     private const val CACHE_FILE = "global_scores.json"
     private const val PENDING_FILE = "pending_scores.json"
 
-    /** The classic local table, shown until the first real fetch succeeds. */
+    /** Only wins of at least this many whists reach the global board. */
+    const val MIN_SCORE = 10.0
+
+    /** The classic table, shown until the first real fetch succeeds. */
     fun seededFallback(): List<Row> = listOf(
-        Row("seed", "Эйнштейн", 10000),
-        Row("seed", "Да Винчи", 7500),
-        Row("seed", "Перельман", 5000),
-        Row("seed", "Вован", 3000),
-        Row("seed", "Настасья", 2500),
-        Row("seed", "Алексей", 2000),
-        Row("seed", "Андрей", 1500),
-        Row("seed", "Григорий", 1000),
-        Row("seed", "Ирина", 500),
+        Row("seed", "Эйнштейн", 1000),
+        Row("seed", "Да Винчи", 750),
+        Row("seed", "Перельман", 500),
+        Row("seed", "Вован", 300),
+        Row("seed", "Настасья", 250),
+        Row("seed", "Алексей", 200),
+        Row("seed", "Андрей", 150),
+        Row("seed", "Григорий", 100),
+        Row("seed", "Ирина", 50),
         Row("seed", "Степан", 0)
     )
 
@@ -83,10 +86,10 @@ object GlobalScores {
         android.util.Log.w("Pref", "pending score save failed", e)
     }
 
-    /** Queues a finished game's result; losing scores never reach the board. */
+    /** Queues a finished game's result; wins under [MIN_SCORE] never board. */
     fun enqueue(name: String, score: Double) {
+        if (score < MIN_SCORE) return
         val score10 = (score * 10).roundToLong()
-        if (score10 < 0) return
         val p = loadPending()
         p.items.add(PendingScore(name, score10, System.currentTimeMillis() / 1000))
         savePending(p)

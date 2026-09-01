@@ -40,14 +40,16 @@ class GlobalScoresTest {
         val rows = GlobalScores.cached() // nothing fetched yet
         assertEquals(10, rows.size)
         assertEquals("Эйнштейн", rows[0].name)
-        assertEquals(1000.0, rows[0].score, 0.0)
+        assertEquals(100.0, rows[0].score, 0.0)
         assertEquals(0.0, rows[9].score, 0.0)
     }
 
     @Test
-    fun losingScoresNeverQueue() {
+    fun smallAndLosingScoresNeverQueue() {
         GlobalScores.enqueue("Loser", -12.5)
-        assertTrue(PrefStorage.readText("pending_scores.json")?.contains("Loser") != true)
+        GlobalScores.enqueue("Small", 9.9) // below the 10-whist minimum
+        val before = PrefStorage.readText("pending_scores.json") ?: ""
+        assertTrue(!before.contains("Loser") && !before.contains("Small"))
         GlobalScores.enqueue("Winner", 42.5) // x10 rounding keeps the half-whist
         val pending = PrefStorage.readText("pending_scores.json") ?: ""
         assertTrue(pending.contains("Winner"))

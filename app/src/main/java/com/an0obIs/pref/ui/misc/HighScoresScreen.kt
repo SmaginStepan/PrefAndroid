@@ -66,15 +66,15 @@ fun HighScoresScreen(app: PrefApp, playerScore: Double?, onToMenu: () -> Unit) {
     // anything else queues right away under the current name
     var showNewRecord by remember {
         mutableStateOf(
-            playerScore != null && playerScore > 0 &&
+            playerScore != null && playerScore >= GlobalScores.MIN_SCORE &&
                     (rows.size < 10 || playerScore * 10 > rows.minOf { it.score10 })
         )
     }
     LaunchedEffect(Unit) {
-        if (playerScore != null && playerScore > 0 && !showNewRecord) {
+        if (playerScore != null && playerScore >= GlobalScores.MIN_SCORE && !showNewRecord) {
             GlobalScores.enqueue(playerName, playerScore)
             syncTick++
-        } else if (playerScore == null || playerScore <= 0) {
+        } else if (playerScore == null || playerScore < GlobalScores.MIN_SCORE) {
             syncTick++
         }
     }
