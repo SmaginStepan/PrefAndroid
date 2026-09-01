@@ -1,4 +1,4 @@
-package com.an0obIs.pref.ui.calc
+﻿package com.an0obIs.pref.ui.calc
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
@@ -427,7 +427,7 @@ fun CalcSheetScreen(
                     OutlinedButton(onClick = {
                         for (i in 0 until playersCount)
                             calc.scores[i].name = setupNames[i]
-                        setupLimit.toIntOrNull()?.let { calc.limit = it }
+                        setupLimit.toIntOrNull()?.let { calc.limit = com.an0obIs.pref.model.AppSettings.clampLimit(it) }
                         showSetup = false
                         onRules()
                     }) { Text(stringResource(R.string.sheet_rules_btn)) }
@@ -437,7 +437,7 @@ fun CalcSheetScreen(
                 Button(onClick = {
                     for (i in 0 until playersCount)
                         calc.scores[i].name = setupNames[i]
-                    setupLimit.toIntOrNull()?.let { calc.limit = it }
+                    setupLimit.toIntOrNull()?.let { calc.limit = com.an0obIs.pref.model.AppSettings.clampLimit(it) }
                     version++
                     showSetup = false
                     showDealer = true

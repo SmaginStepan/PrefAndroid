@@ -45,11 +45,9 @@ class AppSettings {
         }
 
     var limit: Int
-        get() = if (data.limit < 1) 40 else data.limit
+        get() = if (data.limit < 1) 40 else clampLimit(data.limit)
         set(value) {
-            if (value < 1)
-                return
-            data.limit = value
+            data.limit = clampLimit(value)
             save()
         }
 
@@ -75,5 +73,12 @@ class AppSettings {
         private val DEFAULT_NAMES = setOf("", "Игрок", "Player", "Jugador")
 
         fun isDefaultName(name: String) = name.trim() in DEFAULT_NAMES
+
+        // Pool limit bounds for new games and sheets (existing saved pulkas
+        // keep whatever limit they were created with).
+        const val MIN_LIMIT = 10
+        const val MAX_LIMIT = 100
+
+        fun clampLimit(value: Int) = value.coerceIn(MIN_LIMIT, MAX_LIMIT)
     }
 }

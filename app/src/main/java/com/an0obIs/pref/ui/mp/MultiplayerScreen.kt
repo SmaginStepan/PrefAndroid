@@ -421,7 +421,11 @@ private fun CreateRoomDialog(
             Button(
                 enabled = name.isNotBlank() && playerName.isNotBlank(),
                 onClick = {
-                    onCreate(playerName.trim(), name.trim(), seats, password, preset, limitText.toIntOrNull() ?: 10, autoConfirm)
+                    onCreate(
+                        playerName.trim(), name.trim(), seats, password, preset,
+                        com.an0obIs.pref.model.AppSettings.clampLimit(limitText.toIntOrNull() ?: 10),
+                        autoConfirm
+                    )
                 }
             ) { Text(stringResource(R.string.mp_create)) }
         },
