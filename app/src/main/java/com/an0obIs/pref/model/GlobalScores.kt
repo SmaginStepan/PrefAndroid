@@ -37,18 +37,17 @@ object GlobalScores {
     /** Only wins of at least this many whists reach the global board. */
     const val MIN_SCORE = 10.0
 
-    /** The classic table (quarter of the old offline values), shown until
-     *  the first real fetch succeeds. */
+    /** The classic table, shown until the first real fetch succeeds. */
     fun seededFallback(): List<Row> = listOf(
-        Row("seed", "Эйнштейн", 2500),
-        Row("seed", "Да Винчи", 1875),
-        Row("seed", "Перельман", 1250),
-        Row("seed", "Вован", 750),
-        Row("seed", "Настасья", 625),
-        Row("seed", "Алексей", 500),
-        Row("seed", "Андрей", 375),
-        Row("seed", "Григорий", 250),
-        Row("seed", "Ирина", 125),
+        Row("seed", "Эйнштейн", 10000),
+        Row("seed", "Да Винчи", 7500),
+        Row("seed", "Перельман", 5000),
+        Row("seed", "Вован", 3000),
+        Row("seed", "Настасья", 2500),
+        Row("seed", "Алексей", 2000),
+        Row("seed", "Андрей", 1500),
+        Row("seed", "Григорий", 1000),
+        Row("seed", "Ирина", 500),
         Row("seed", "Степан", 0)
     )
 

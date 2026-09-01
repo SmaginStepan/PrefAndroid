@@ -40,7 +40,7 @@ class GlobalScoresTest {
         val rows = GlobalScores.cached() // nothing fetched yet
         assertEquals(10, rows.size)
         assertEquals("Эйнштейн", rows[0].name)
-        assertEquals(250.0, rows[0].score, 0.0)
+        assertEquals(1000.0, rows[0].score, 0.0)
         assertEquals(0.0, rows[9].score, 0.0)
     }
 
