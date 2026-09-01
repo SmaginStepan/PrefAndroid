@@ -6,6 +6,7 @@
     <!-- Main menu -->
     <string name="menu_new_game">Nueva partida</string>
     <string name="menu_new_game_sub">comenzar una nueva partida</string>
+    <string name="new_game_start">Empezar</string>
     <string name="menu_continue">Continuar</string>
     <string name="menu_continue_sub">reanudar la partida guardada</string>
     <string name="menu_learning">Tutorial</string>

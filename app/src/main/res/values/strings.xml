@@ -6,6 +6,7 @@
     <!-- Main menu -->
     <string name="menu_new_game">New game</string>
     <string name="menu_new_game_sub">start a new game</string>
+    <string name="new_game_start">Start</string>
     <string name="menu_continue">Continue</string>
     <string name="menu_continue_sub">resume the saved game</string>
     <string name="menu_learning">Tutorial</string>
