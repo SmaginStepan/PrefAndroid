@@ -10,7 +10,10 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -66,6 +69,10 @@ class MainActivity : AppCompatActivity() {
         // phones stay portrait; tablets may rotate
         if (resources.configuration.smallestScreenWidthDp < 600) {
             requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
+        // scores finished offline reach the global board on the next launch
+        lifecycleScope.launch(Dispatchers.IO) {
+            com.an0obIs.pref.model.GlobalScores.flushPending()
         }
         setContent {
             PrefTheme {

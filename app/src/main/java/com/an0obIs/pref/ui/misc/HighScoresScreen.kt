@@ -12,6 +12,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -26,8 +27,10 @@ import androidx.compose.ui.unit.sp
 import com.an0obIs.pref.PrefApp
 import com.an0obIs.pref.R
 import com.an0obIs.pref.model.AppSettings
-import com.an0obIs.pref.model.HighScoresTable
+import com.an0obIs.pref.model.GlobalScores
 import com.an0obIs.pref.ui.AccentGold
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.text.DecimalFormat
 
 // The seeded leaderboard names are stored in Russian; outside the Russian
@@ -44,18 +47,44 @@ private val SEEDED_NAME_TRANSLIT = mapOf(
     "Ирина" to "Irina"
 )
 
-/** Port of HighScores.xaml.cs. */
+/**
+ * The global leaderboard (ScoreServer): the last cached board shows
+ * immediately — the classic seeded names before the first fetch — and a
+ * background sync flushes queued scores and refreshes the list. The game
+ * itself stays fully offline; scores queue until the network allows.
+ */
 @Composable
 fun HighScoresScreen(app: PrefApp, playerScore: Double?, onToMenu: () -> Unit) {
-    val table = remember { HighScoresTable.load() }
-    var version by remember { mutableIntStateOf(0) }
-    var showNewRecord by remember {
-        mutableStateOf(playerScore != null && table.minScore < playerScore)
-    }
+    var rows by remember { mutableStateOf(GlobalScores.cached()) }
+    var syncTick by remember { mutableIntStateOf(0) }
+    val myId = remember { AppSettings().playerId }
     val defaultName = stringResource(R.string.default_player_name)
     var playerName by remember {
         mutableStateOf(AppSettings().let { if (it.isDefaultPlayerName) defaultName else it.playerName })
     }
+    // a winning score that beats the visible board asks for the name first;
+    // anything else queues right away under the current name
+    var showNewRecord by remember {
+        mutableStateOf(
+            playerScore != null && playerScore > 0 &&
+                    (rows.size < 10 || playerScore * 10 > rows.minOf { it.score10 })
+        )
+    }
+    LaunchedEffect(Unit) {
+        if (playerScore != null && playerScore > 0 && !showNewRecord) {
+            GlobalScores.enqueue(playerName, playerScore)
+            syncTick++
+        } else if (playerScore == null || playerScore <= 0) {
+            syncTick++
+        }
+    }
+    LaunchedEffect(syncTick) {
+        if (syncTick > 0) {
+            val fresh = withContext(Dispatchers.IO) { GlobalScores.sync() }
+            rows = fresh ?: GlobalScores.cached()
+        }
+    }
+
     val isRussian = androidx.compose.ui.platform.LocalConfiguration.current
         .locales[0].language == "ru"
     val fmt = remember { DecimalFormat("0.#") }
@@ -84,35 +113,34 @@ fun HighScoresScreen(app: PrefApp, playerScore: Double?, onToMenu: () -> Unit) {
                     .padding(vertical = 8.dp)
             )
             Button(onClick = {
-                table.addScore(playerName, playerScore ?: 0.0)
                 val settings = AppSettings()
                 settings.playerName = playerName
                 app.game?.calc?.scores?.get(0)?.name = playerName
-                table.save()
+                GlobalScores.enqueue(playerName, playerScore ?: 0.0)
                 showNewRecord = false
-                version++
+                syncTick++
             }) { Text(stringResource(R.string.save)) }
         }
 
-        version
-        for (score in table.scores) {
+        for (row in rows) {
+            val mine = row.playerId == myId
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp)
             ) {
                 Text(
-                    text = if (isRussian) score.playerName
-                    else SEEDED_NAME_TRANSLIT[score.playerName] ?: score.playerName,
+                    text = if (isRussian) row.name
+                    else SEEDED_NAME_TRANSLIT[row.name] ?: row.name,
                     fontSize = 22.sp,
-                    color = if (score.lastAdded) Color(0xFFFFEB3B) else Color.Gray,
+                    color = if (mine) Color(0xFFFFEB3B) else Color.Gray,
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    text = fmt.format(score.score),
+                    text = fmt.format(row.score),
                     fontSize = 22.sp,
                     textAlign = TextAlign.Right,
-                    color = if (score.lastAdded) Color(0xFFFFEB3B) else Color.Gray
+                    color = if (mine) Color(0xFFFFEB3B) else Color.Gray
                 )
             }
         }
