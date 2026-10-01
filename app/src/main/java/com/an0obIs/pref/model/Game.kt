@@ -165,9 +165,17 @@ class Game {
         GamePhase.Negotiations, GamePhase.VistNegotiations, GamePhase.PrikupOpened,
         GamePhase.Discarding, GamePhase.GameChoose, GamePhase.OpeningChoose -> getFirstPlayer()
         GamePhase.Playing -> if (firstMovePerformer >= 0) firstMovePerformer else playerInTurn
-        GamePhase.EndTurn -> playerToTake
+        // the next trick opens a talon card in all-pass play, and then the
+        // first hand moves first no matter who took this trick (see raspasyPrikup)
+        GamePhase.EndTurn ->
+            if (nextTrickOpensTalon()) getFirstPlayer() else playerToTake
         else -> -1
     }
+
+    /** The trick on view is not counted yet, so ask about the next trick's count. */
+    private fun nextTrickOpensTalon(): Boolean =
+        currentGameType == GameType.Raspasy && calc.rules.gameType != RulesGameType.Rostov &&
+                deal.totalTaken + 1 < 2
 
     val isOpened: Boolean
         get() = deal.hands.count { it.isVisible } > 1

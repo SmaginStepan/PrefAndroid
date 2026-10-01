@@ -57,11 +57,38 @@ class LeaderSeatTest {
     @Test
     fun finishedTrickMarksTheTaker() {
         val g = game(dealer = 0)
+        g.currentGameType = com.an0obIs.pref.model.GameType.Normal
         g.phase = GamePhase.EndTurn
         g.firstMovePerformer = 1
         g.playerInTurn = 1
         g.playerToTake = 2
         assertEquals(2, g.leaderSeat())
+    }
+
+    @Test
+    fun allPassTalonTricksStartWithTheFirstHand() {
+        // regression (found in a live multiplayer test): the trick that follows
+        // the first review opens a talon card, and then the first hand moves
+        // first, so that review must not point at the taker
+        val g = game(dealer = 0) // first hand = seat 1
+        g.phase = GamePhase.EndTurn
+        g.currentGameType = com.an0obIs.pref.model.GameType.Raspasy
+        g.playerToTake = 2
+        assertEquals("review of trick 1", 1, g.leaderSeat())
+        g.deal.hands[0].taken = 1 // trick 2 on view: trick 3 has no talon card
+        assertEquals("review of trick 2", 2, g.leaderSeat())
+        g.deal.hands[0].taken = 5
+        assertEquals("a late review", 2, g.leaderSeat())
+    }
+
+    @Test
+    fun movingMarkerFollowsTheLeaderInTheTrickReview() {
+        val info = com.an0obIs.pref.ui.game.TableInfo(
+            phase = GamePhase.EndTurn, playerToTake = 2, leader = 1
+        )
+        assertEquals(1, com.an0obIs.pref.ui.game.GameTexts.turnMarker(info))
+        // an older host sends no leader: fall back to the taker
+        assertEquals(2, com.an0obIs.pref.ui.game.GameTexts.turnMarker(info.copy(leader = -1)))
     }
 
     @Test

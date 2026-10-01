@@ -40,7 +40,9 @@ object GameTexts {
         return when (info.phase) {
             GamePhase.NotStarted, GamePhase.Ended,
             GamePhase.EndPlay, GamePhase.ScoreView -> -1
-            GamePhase.EndTurn -> info.playerToTake
+            // whoever moves first after the review (the engine decides: the
+            // taker, or the first hand when a talon card opens the next trick)
+            GamePhase.EndTurn -> if (info.leader >= 0) info.leader else info.playerToTake
             GamePhase.PrikupOpened -> info.contractor
             else -> info.playerInTurn
         }
