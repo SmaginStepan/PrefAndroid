@@ -155,6 +155,20 @@ class Game {
         return num
     }
 
+    /**
+     * The seat that leads the current round, for the table's lead marker:
+     * the first hand until play starts, then whoever led the trick being
+     * played (or, between tricks, whoever takes the last one and leads next).
+     * -1 on the result and score screens.
+     */
+    fun leaderSeat(): Int = when (phase) {
+        GamePhase.Negotiations, GamePhase.VistNegotiations, GamePhase.PrikupOpened,
+        GamePhase.Discarding, GamePhase.GameChoose, GamePhase.OpeningChoose -> getFirstPlayer()
+        GamePhase.Playing -> if (firstMovePerformer >= 0) firstMovePerformer else playerInTurn
+        GamePhase.EndTurn -> playerToTake
+        else -> -1
+    }
+
     val isOpened: Boolean
         get() = deal.hands.count { it.isVisible } > 1
 

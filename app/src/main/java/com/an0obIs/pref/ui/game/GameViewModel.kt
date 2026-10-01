@@ -42,6 +42,8 @@ data class TableInfo(
     val maxBid: Game.Bid? = null,
     val playerToTake: Int = 0,
     val playerInTurn: Int = 0,
+    /** seat leading the current round (lead marker); -1 = none */
+    val leader: Int = -1,
     /** who acts now; differs from playerInTurn when the whister moves for the passer */
     val controller: Int = 0,
     /** the viewer sits out this deal (4-player: the dealer watches) */
@@ -315,6 +317,7 @@ class GameViewModel : ViewModel() {
         maxBid = game.maxBid,
         playerToTake = game.playerToTake,
         playerInTurn = game.playerInTurn,
+        leader = game.leaderSeat(),
         controller = game.turnController(),
         watching = session?.hostActive == false,
         sitOutName = session?.sitOutName,

@@ -461,12 +461,12 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
             }
         }
 
-        Text(strings.p1, color = Color.White, fontSize = 13.sp,
-            modifier = Modifier.offset(x = ux(20.0), y = uy(10.0)).width(ux(196.0)))
-        Text(strings.p2, color = Color.White, fontSize = 13.sp, textAlign = TextAlign.Right,
-            modifier = Modifier.offset(x = ux(266.0), y = uy(10.0)).width(ux(196.0)))
-        Text(strings.p0, color = Color.White, fontSize = 13.sp, textAlign = TextAlign.Right,
-            modifier = Modifier.offset(x = ux(177.0), y = uy(664.0)).width(ux(285.0)))
+        com.an0obIs.pref.ui.game.TableLabel(strings.p1,
+            Modifier.offset(x = ux(20.0), y = uy(10.0)).width(ux(196.0)))
+        com.an0obIs.pref.ui.game.TableLabel(strings.p2,
+            Modifier.offset(x = ux(266.0), y = uy(10.0)).width(ux(196.0)), TextAlign.Right)
+        com.an0obIs.pref.ui.game.TableLabel(strings.p0,
+            Modifier.offset(x = ux(177.0), y = uy(664.0)).width(ux(285.0)), TextAlign.Right)
         Text(strings.gameInfo, color = Color.White, fontSize = 13.sp, textAlign = TextAlign.Right,
             modifier = Modifier.offset(x = ux(177.0), y = uy(694.0)).width(ux(285.0)))
 

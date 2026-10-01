@@ -89,6 +89,7 @@ object RemoteViews {
             maxBid = game.maxBid,
             playerToTake = rot(game.playerToTake, viewer),
             playerInTurn = rot(game.playerInTurn, viewer),
+            leader = game.leaderSeat().let { if (it < 0) -1 else rot(it, viewer) },
             controller = rot(game.turnController(), viewer),
             watching = watching,
             sitOutName = sitOutName,

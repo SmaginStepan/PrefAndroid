@@ -46,6 +46,11 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -59,6 +64,7 @@ import com.an0obIs.pref.PrefApp
 import com.an0obIs.pref.R
 import com.an0obIs.pref.model.Card
 import com.an0obIs.pref.model.GamePhase
+import com.an0obIs.pref.ui.AccentGold
 import com.an0obIs.pref.model.GameType
 
 /** Loads and caches card sprites (one soft-upscaled set for all devices). */
@@ -96,6 +102,47 @@ class CardImages(private val ctx: Context) {
             BitmapFactory.decodeStream(it, null, opts)!!.asImageBitmap()
         }
     }
+}
+
+/** Private-use placeholder the player labels carry where the lead marker goes. */
+internal const val LEAD_MARK = ""
+
+private val LEAD_INLINE = mapOf(
+    "lead" to InlineTextContent(
+        Placeholder(width = 10.sp, height = 14.sp, placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter)
+    ) {
+        // a tiny gold card back: "this player leads the round"
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(vertical = 1.dp)
+                .background(AccentGold, RoundedCornerShape(2.dp))
+                .border(1.dp, Color(0xFF8A6D1A), RoundedCornerShape(2.dp))
+        )
+    }
+)
+
+/** A player's name line (name, role, bid) with the lead marker drawn inline. */
+@Composable
+internal fun TableLabel(text: String, modifier: Modifier, textAlign: TextAlign = TextAlign.Start) {
+    val at = text.indexOf(LEAD_MARK)
+    if (at < 0) {
+        Text(text = text, color = Color.White, fontSize = 13.sp, textAlign = textAlign, modifier = modifier)
+        return
+    }
+    Text(
+        text = buildAnnotatedString {
+            append(text.substring(0, at))
+            append(" ")
+            appendInlineContent("lead", "*")
+            append(text.substring(at + 1))
+        },
+        inlineContent = LEAD_INLINE,
+        color = Color.White,
+        fontSize = 13.sp,
+        textAlign = textAlign,
+        modifier = modifier
+    )
 }
 
 internal data class TableStrings(
@@ -213,6 +260,10 @@ private fun buildTableStringsInner(ctx: Context, info: TableInfo, markerOverride
         }
         else -> {}
     }
+    // the lead marker is drawn inline where this placeholder sits (see TableLabel)
+    if (info.leader == 0) p0 += LEAD_MARK
+    if (info.leader == 1) p1 += LEAD_MARK
+    if (info.leader == 2) p2 += LEAD_MARK
     return TableStrings(p0, p1, p2, gameInfo, hint, result)
 }
 
@@ -654,27 +705,21 @@ fun GameScreen(
         }
 
         // Player labels
-        Text(
+        TableLabel(
             text = strings.p1,
-            color = Color.White,
-            fontSize = 13.sp,
             modifier = Modifier
                 .offset(x = ux(20.0), y = uy(10.0))
                 .width(ux(196.0))
         )
-        Text(
+        TableLabel(
             text = strings.p2,
-            color = Color.White,
-            fontSize = 13.sp,
             textAlign = TextAlign.Right,
             modifier = Modifier
                 .offset(x = ux(266.0), y = uy(10.0))
                 .width(ux(196.0))
         )
-        Text(
+        TableLabel(
             text = strings.p0,
-            color = Color.White,
-            fontSize = 13.sp,
             textAlign = TextAlign.Right,
             modifier = Modifier
                 .offset(x = ux(177.0), y = uy(664.0))
