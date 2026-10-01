@@ -344,6 +344,7 @@ class GameViewModel : ViewModel() {
 
     /** Recompute all published render state from the (quiescent) game. */
     private fun refresh() {
+        turnMarker = null
         showPrikupHand = null
         if (game.phase != GamePhase.EndTurn || game.deal.totalTaken != trickCollectedAt)
             trickCollected = false
@@ -649,9 +650,22 @@ class GameViewModel : ViewModel() {
     val isGameEnded: Boolean
         get() = game.phase == GamePhase.Ended
 
+    /** Player whose move or announcement is animating; the ">" follows it. */
+    var turnMarker by mutableStateOf<Int?>(null)
+        private set
+
     private suspend fun processAnimations(queue: ArrayDeque<Game.Animation> = game.animations) {
+        try {
+            replayAnimations(queue)
+        } finally {
+            turnMarker = null
+        }
+    }
+
+    private suspend fun replayAnimations(queue: ArrayDeque<Game.Animation>) {
         while (true) {
             val a = if (queue.isNotEmpty()) queue.removeFirst() else break
+            if (!a.take) turnMarker = a.player.takeIf { it in 0..2 }
             if (a.take) {
                 // a trick closed without a confirm stop: collect what is still
                 // lying on the table toward the taker (skip if already clean);

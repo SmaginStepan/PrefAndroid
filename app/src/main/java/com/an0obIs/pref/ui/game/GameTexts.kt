@@ -27,12 +27,29 @@ object GameTexts {
         return "${bid.contract} ${trumpName(ctx, bid.trump)}"
     }
 
+    /**
+     * The seat the ">" marker points at. [override] is the player whose move
+     * or announcement is being animated right now (bots resolve instantly in
+     * the engine, so the table replays their moves afterwards). Otherwise the
+     * marker follows what happens next: the trick taker while a finished
+     * trick is on view, the contractor at the opened talon, and nobody on the
+     * result and score screens.
+     */
+    fun turnMarker(info: TableInfo, override: Int? = null): Int {
+        if (override != null && override in 0..2) return override
+        return when (info.phase) {
+            GamePhase.NotStarted, GamePhase.Ended,
+            GamePhase.EndPlay, GamePhase.ScoreView -> -1
+            GamePhase.EndTurn -> info.playerToTake
+            GamePhase.PrikupOpened -> info.contractor
+            else -> info.playerInTurn
+        }
+    }
+
     /** Port of GameMain.PlayerInfo; ">" marks the player whose turn it is. */
-    fun playerInfo(ctx: Context, info: TableInfo, player: Int): String {
+    fun playerInfo(ctx: Context, info: TableInfo, player: Int, markerOverride: Int? = null): String {
         var res = ""
-        if (player == info.playerInTurn &&
-            info.phase != GamePhase.NotStarted && info.phase != GamePhase.Ended
-        )
+        if (player == turnMarker(info, markerOverride))
             res += ">"
         res += info.names[player]
         if (info.currentGameType == GameType.Normal || info.currentGameType == GameType.Miser) {

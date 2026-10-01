@@ -105,6 +105,10 @@ class GuestGameViewModel : ViewModel() {
     var animProgress by mutableStateOf(0f)
         private set
 
+    /** Viewer-relative seat whose move/announcement is animating; the ">" follows it. */
+    var turnMarker by mutableStateOf<Int?>(null)
+        private set
+
     /** Tricks already shown collected on this table (visual, not engine). */
     private var seenTricks = 0
 
@@ -132,6 +136,7 @@ class GuestGameViewModel : ViewModel() {
                 cardAnim = null
                 trickAnim = null
                 say = null
+                turnMarker = null
             }
         }
         onState(s)
@@ -139,6 +144,7 @@ class GuestGameViewModel : ViewModel() {
     }
 
     private suspend fun sayOut(e: com.an0obIs.pref.ui.game.SayEvent) {
+        turnMarker = e.player
         say = e
         runAnim(960)
         kotlinx.coroutines.delay(300)
@@ -184,6 +190,7 @@ class GuestGameViewModel : ViewModel() {
         fun lying() = field.filter { it.isInPlay && it.card != null }
 
         suspend fun flyCard(hand: Int, card: Card, tx: Double, ty: Double) {
+            turnMarker = hand.takeIf { it in 0..2 }
             val from = field.firstOrNull { !it.isInPlay && it.card?.id == card.id }
                 ?: field.firstOrNull { !it.isInPlay && it.card == null && it.hand == hand }
             val (fx, fy) = if (from != null) Pair(from.x, from.y)
@@ -352,7 +359,7 @@ fun MpGuestScreen(lobbyVm: LobbyViewModel) {
             contentScale = ContentScale.FillBounds
         )
 
-        val strings = buildTableStrings(ctx, st.info, mp = true)
+        val strings = buildTableStrings(ctx, st.info, mp = true, markerOverride = vm.turnMarker)
         val hintText = when {
             st.offerDeclined != null -> stringResource(R.string.offer_declined_fmt, st.offerDeclined!!)
             st.badMove -> stringResource(R.string.mp_bad_move)

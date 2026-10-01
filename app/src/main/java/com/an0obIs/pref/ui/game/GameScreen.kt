@@ -108,8 +108,14 @@ internal data class TableStrings(
 )
 
 /** Port of DrawField's text section. Shared with the multiplayer guest screen. */
-internal fun buildTableStrings(ctx: Context, info: TableInfo, mp: Boolean = false): TableStrings {
-    val base = buildTableStringsInner(ctx, info)
+internal fun buildTableStrings(
+    ctx: Context,
+    info: TableInfo,
+    mp: Boolean = false,
+    /** the player whose move/announcement is animating; moves the ">" marker */
+    markerOverride: Int? = null
+): TableStrings {
+    val base = buildTableStringsInner(ctx, info, markerOverride)
     // Confirmed the current stop: show who everyone is waiting for.
     if (mp && info.youConfirmed && info.waitingFor.isNotEmpty()) {
         return base.copy(hint = ctx.getString(R.string.mp_waiting_confirm, info.waitingFor.joinToString(", ")))
@@ -134,10 +140,10 @@ internal fun buildTableStrings(ctx: Context, info: TableInfo, mp: Boolean = fals
     return base
 }
 
-private fun buildTableStringsInner(ctx: Context, info: TableInfo): TableStrings {
-    var p0 = GameTexts.playerInfo(ctx, info, 0)
-    var p1 = GameTexts.playerInfo(ctx, info, 1)
-    var p2 = GameTexts.playerInfo(ctx, info, 2)
+private fun buildTableStringsInner(ctx: Context, info: TableInfo, markerOverride: Int?): TableStrings {
+    var p0 = GameTexts.playerInfo(ctx, info, 0, markerOverride)
+    var p1 = GameTexts.playerInfo(ctx, info, 1, markerOverride)
+    var p2 = GameTexts.playerInfo(ctx, info, 2, markerOverride)
     var gameInfo = ""
     var hint = ""
     var result = ""
@@ -594,7 +600,7 @@ fun GameScreen(
         )
 
         val info = vm.info
-        val strings = buildTableStrings(ctx, info, mp = vm.hosted)
+        val strings = buildTableStrings(ctx, info, mp = vm.hosted, markerOverride = vm.turnMarker)
         val hintText = vm.transientHint?.invoke(ctx)
             ?: (if (vm.thinking) stringResource(R.string.game_thinking) else strings.hint)
 
