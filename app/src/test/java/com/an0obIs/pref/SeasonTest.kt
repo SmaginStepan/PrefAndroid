@@ -172,6 +172,27 @@ class SeasonTest {
     }
 
     @Test
+    fun everyClosedPoolIsPostedEvenWhenTheTotalIsNegative() {
+        val state = SeasonState().also { it.seed = seed; it.seasonId = "2026-11" }
+        assertEquals("total:2026-11", Seasons.boardName(state))
+        assertTrue("nothing to post before the first pool closes", !Seasons.needsSubmit(state))
+
+        val game = Seasons.newPoolGame(state, "Me", "West", "East")
+        repeat(5) { game.newDeal() }
+        Seasons.poolClosed(state, game, -30.0)
+        assertTrue(state.total10 < 0)
+        assertTrue("a negative total must still be posted", Seasons.needsSubmit(state))
+
+        state.submittedPools = state.poolsClosed // the server accepted it
+        assertTrue(!Seasons.needsSubmit(state))
+
+        repeat(4) { game.newDeal() }
+        Seasons.poolClosed(state, game, 30.0) // back to exactly zero
+        assertEquals(0L, state.total10)
+        assertTrue("a total of zero is posted too", Seasons.needsSubmit(state))
+    }
+
+    @Test
     fun daysLeftRoundsUp() {
         val s = SeasonState().also { it.endsAt = 1_000_000 }
         assertEquals(1, Seasons.daysLeft(s, 1_000_000 - 3600))

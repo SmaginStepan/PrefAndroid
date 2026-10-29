@@ -87,8 +87,8 @@ class SeasonState {
     var total10: Long = 0
     var poolsClosed: Int = 0
 
-    /** the best total the server has accepted so far */
-    var submittedBest10: Long = 0
+    /** how many closed pools the server's copy of the total already includes */
+    var submittedPools: Int = 0
 
     /** the board as last fetched, for offline viewing */
     var board: List<SeasonRow> = emptyList()
@@ -115,7 +115,8 @@ object Seasons {
         android.util.Log.w("Pref", "season save failed", e)
     }
 
-    fun boardName(state: SeasonState) = "season:${state.seasonId}"
+    /** A running-total board: the total may fall and go below zero (server rule for "total:" ids). */
+    fun boardName(state: SeasonState) = "total:${state.seasonId}"
 
     fun config(state: SeasonState) = SeasonConfig.derive(state.seed)
 
@@ -182,15 +183,18 @@ object Seasons {
         save(state)
     }
 
-    /** Posts the total if it is a new best; blocking, safe to call any time. */
+    /** A pool has closed since the server last heard from us (any total, negative included). */
+    fun needsSubmit(state: SeasonState) = state.poolsClosed > state.submittedPools
+
+    /** Posts the current total after every closed pool; blocking, safe to call any time. */
     fun submitPending(state: SeasonState, playerName: String) {
-        if (state.total10 <= 0 || state.total10 <= state.submittedBest10) return
+        if (!needsSubmit(state)) return
         val outcome = ScoreClient.submit(
             AppSettings().playerId, playerName, state.total10,
             System.currentTimeMillis() / 1000, board = boardName(state)
         )
         if (outcome != ScoreClient.SubmitOutcome.RETRY) {
-            state.submittedBest10 = state.total10
+            state.submittedPools = state.poolsClosed
             save(state)
         }
     }
