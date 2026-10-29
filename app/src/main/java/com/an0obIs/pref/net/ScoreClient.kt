@@ -55,10 +55,46 @@ object ScoreClient {
         .readTimeout(10, TimeUnit.SECONDS)
         .build()
 
-    /** The global top list, or null when the server is unreachable. */
-    fun fetchTop(limit: Int = 10): List<Entry>? = try {
+    /** The season the server is running (its seed derives every deal and rule). */
+    data class SeasonInfo(val seasonId: String, val startsAt: Long, val endsAt: Long, val seed: String)
+
+    @Serializable
+    private data class SeasonResponse(
+        val season_id: String,
+        val starts_at: Long,
+        val ends_at: Long,
+        /** a JSON document stored as text: {"seed":"<hex>"} */
+        val payload: String? = null
+    )
+
+    @Serializable
+    private data class SeasonPayload(val seed: String = "")
+
+    /** The current season, or null when none is running or the server is unreachable. */
+    fun fetchSeason(): SeasonInfo? = try {
         val req = Request.Builder()
-            .url("$BASE/v1/$GAME/boards/$BOARD/top?limit=$limit")
+            .url("$BASE/v1/$GAME/season/current")
+            .header("X-Api-Key", API_KEY)
+            .build()
+        http.newCall(req).execute().use { resp ->
+            if (!resp.isSuccessful) null
+            else {
+                val r = json.decodeFromString(SeasonResponse.serializer(), resp.body!!.string())
+                val seed = r.payload
+                    ?.let { json.decodeFromString(SeasonPayload.serializer(), it).seed }
+                    ?.takeIf { it.isNotEmpty() }
+                if (seed == null) null else SeasonInfo(r.season_id, r.starts_at, r.ends_at, seed)
+            }
+        }
+    } catch (e: Exception) {
+        android.util.Log.w("PrefNet", "season fetch failed: ${e.message}")
+        null
+    }
+
+    /** A board's top list ("alltime" or "season:<id>"), or null when the server is unreachable. */
+    fun fetchTop(limit: Int = 10, board: String = BOARD): List<Entry>? = try {
+        val req = Request.Builder()
+            .url("$BASE/v1/$GAME/boards/$board/top?limit=$limit")
             .header("X-Api-Key", API_KEY)
             .build()
         http.newCall(req).execute().use { resp ->
@@ -75,8 +111,14 @@ object ScoreClient {
      * server calls permanent (out of range) is DROP; rate limiting and network
      * failures are RETRY.
      */
-    fun submit(playerId: String, name: String, score10: Long, deviceTs: Long): SubmitOutcome = try {
-        val path = "/v1/$GAME/boards/$BOARD/scores"
+    fun submit(
+        playerId: String,
+        name: String,
+        score10: Long,
+        deviceTs: Long,
+        board: String = BOARD
+    ): SubmitOutcome = try {
+        val path = "/v1/$GAME/boards/$board/scores"
         val body = json.encodeToString(
             SubmitBody.serializer(),
             SubmitBody(playerId, name, score10, deviceTs)

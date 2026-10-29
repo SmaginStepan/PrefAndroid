@@ -3,7 +3,6 @@ package com.an0obIs.pref.ai
 import com.an0obIs.pref.model.Card
 import com.an0obIs.pref.model.Game
 import java.util.ArrayDeque
-import kotlin.random.Random
 
 class GameSituation(game: Game, info: AIInfo, gamePlay: OpenPlay) {
 
@@ -25,7 +24,7 @@ class GameSituation(game: Game, info: AIInfo, gamePlay: OpenPlay) {
 
     private val trump: Int
 
-    private val rnd = Random.Default
+    private val rnd = game.aiRandom
 
     var calculated = 0
     var skipped = 0

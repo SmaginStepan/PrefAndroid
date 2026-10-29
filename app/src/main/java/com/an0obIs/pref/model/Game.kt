@@ -242,19 +242,49 @@ class Game {
 
         fun loadLast(): Game? {
             return try {
-                load("lastgame.json")
+                load("lastgame.json")?.takeIf { it.seasonSeed == null }
+            } catch (e: Exception) {
+                null
+            }
+        }
+
+        const val SEASON_GAME_FILE = "seasongame.json"
+
+        fun loadSeason(): Game? {
+            return try {
+                load(SEASON_GAME_FILE)?.takeIf { it.seasonSeed != null }
             } catch (e: Exception) {
                 null
             }
         }
     }
 
+    // Season games deal from the season seed, so every player gets the same
+    // cards in the same order, and the bots draw from a per-deal seeded stream
+    // (persisted, so a resumed deal replays identically).
+    var seasonSeed: String? = null
+    var seasonDealIndex: Int = 0
+    var botRng: SeasonRandom? = null
+
+    /** The generator the bots use for their random choices. */
+    val aiRandom: PrefRandom
+        get() = botRng ?: DefaultRandom
+
     // Начало новой раздачи
     fun newDeal() {
         curentBids = mutableMapOf()
         isVister = mutableMapOf()
         agreedNoVists = false
-        deal = Deal().also { it.shuffle() }
+        val seed = seasonSeed
+        deal = Deal().also {
+            if (seed != null) {
+                it.shuffle(SeasonRandom.forPurpose(seed, "deal", seasonDealIndex))
+                botRng = SeasonRandom.forPurpose(seed, "bots", seasonDealIndex)
+                seasonDealIndex++
+            } else {
+                it.shuffle()
+            }
+        }
         // in single player seat 0 is the local human; in hosted multiplayer
         // no hand is publicly visible until the play opens it
         deal.hands[0].isVisible = !externalDriver
@@ -299,8 +329,9 @@ class Game {
         PrefStorage.writeText(name, PrefStorage.json.encodeToString(serializer(), this))
     }
 
+    /** A season run keeps its own slot, so it never overwrites a normal saved game. */
     fun saveLast() {
-        save("lastgame.json")
+        save(if (seasonSeed != null) SEASON_GAME_FILE else "lastgame.json")
     }
     //endregion
 

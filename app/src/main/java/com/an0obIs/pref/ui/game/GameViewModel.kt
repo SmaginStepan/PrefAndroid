@@ -72,6 +72,10 @@ class GameViewModel : ViewModel() {
 
     lateinit var game: Game
         private set
+
+    /** The running game is a season run (shared deals, no advice). */
+    val isSeasonRun: Boolean
+        get() = ::game.isInitialized && game.seasonSeed != null
     private lateinit var app: PrefApp
 
     var field by mutableStateOf<List<PlacedCard>>(emptyList())

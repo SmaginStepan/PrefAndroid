@@ -931,7 +931,8 @@ fun GameScreen(
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (!vm.hosted) {
+                // advice is off in season games: everyone competes on the same footing
+                if (!vm.hosted && !vm.isSeasonRun) {
                     OutlinedButton(onClick = { vm.requestAdvice() }) {
                         Text(stringResource(R.string.game_btn_hint), fontSize = 12.sp, color = Color.White)
                     }

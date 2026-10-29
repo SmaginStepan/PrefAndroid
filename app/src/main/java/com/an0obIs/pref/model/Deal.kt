@@ -103,7 +103,9 @@ class Deal {
     val totalTaken: Int
         get() = hands.sumOf { it.taken }
 
-    fun shuffle() {
+    /** Deals three hands of ten and a two-card talon. A season deal passes its
+     *  own seeded generator, so every player gets the same cards. */
+    fun shuffle(rnd: PrefRandom = DefaultRandom) {
         prikup = Hand()
         hands = mutableListOf()
         inPlay = mutableMapOf()
@@ -112,7 +114,6 @@ class Deal {
                 prikup.cards.add(Card(value = i, coatColor = j))
             }
         }
-        val rnd = Random.Default
         for (i in 0 until 3) {
             val hand = Hand()
             hands.add(hand)

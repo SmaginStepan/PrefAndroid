@@ -20,6 +20,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.an0obIs.pref.model.Calculation
 import com.an0obIs.pref.model.Game
+import com.an0obIs.pref.model.Seasons
 import com.an0obIs.pref.ui.MainMenuScreen
 import com.an0obIs.pref.ui.PlaceholderScreen
 import com.an0obIs.pref.ui.PrefTheme
@@ -36,6 +37,7 @@ import com.an0obIs.pref.ui.misc.DictionaryScreen
 import com.an0obIs.pref.ui.misc.GameLogScreen
 import com.an0obIs.pref.ui.misc.HighScoresScreen
 import com.an0obIs.pref.ui.misc.LearningScreen
+import com.an0obIs.pref.ui.misc.SeasonScreen
 import com.an0obIs.pref.ui.mp.MultiplayerScreen
 
 object Routes {
@@ -57,6 +59,7 @@ object Routes {
     const val ABOUT = "about"
     const val GAME_LOG = "gamelog"
     const val MULTIPLAYER = "multiplayer"
+    const val SEASON = "season"
 }
 
 class MainActivity : AppCompatActivity() {
@@ -100,6 +103,8 @@ class MainActivity : AppCompatActivity() {
 
         NavHost(navController = navController, startDestination = Routes.MENU) {
             composable(Routes.MENU) {
+                // the menu always belongs to the normal game, never a season run
+                app.seasonMode = false
                 MainMenuScreen(
                     hasSavedGame = app.game != null,
                     onNewGame = {
@@ -111,6 +116,7 @@ class MainActivity : AppCompatActivity() {
                     },
                     onContinue = { navController.navigate(Routes.GAME) },
                     onMultiplayer = { navController.navigate(Routes.MULTIPLAYER) },
+                    onSeason = { navController.navigate(Routes.SEASON) },
                     onLearning = { navController.navigate(Routes.LEARNING) },
                     onCalc = { navController.navigate(Routes.CALC) },
                     onSettings = { navController.navigate(Routes.SETTINGS) },
@@ -242,13 +248,43 @@ class MainActivity : AppCompatActivity() {
                         calc = calc,
                         onClose = {
                             val score = calc.scores[0].score
-                            app.game = null
-                            navController.navigate("${Routes.HIGH_SCORES}?score=$score") {
-                                popUpTo(Routes.MENU)
+                            if (app.seasonMode) {
+                                // a season pool is closed: bank its settlement and
+                                // start the next pool on the following deals
+                                val season = Seasons.load()
+                                if (season != null) {
+                                    Seasons.poolClosed(season, game, score)
+                                    app.seasonGame = Seasons.newPoolGame(
+                                        season,
+                                        calc.scores[0].name,
+                                        calc.scores[1].name,
+                                        calc.scores[2].name
+                                    )
+                                }
+                                navController.navigate(Routes.SEASON) {
+                                    popUpTo(Routes.MENU)
+                                }
+                            } else {
+                                app.game = null
+                                navController.navigate("${Routes.HIGH_SCORES}?score=$score") {
+                                    popUpTo(Routes.MENU)
+                                }
                             }
                         }
                     )
                 }
+            }
+
+            composable(Routes.SEASON) {
+                SeasonScreen(
+                    app = app,
+                    onPlay = { navController.navigate(Routes.GAME) },
+                    onToMenu = {
+                        navController.navigate(Routes.MENU) {
+                            popUpTo(Routes.MENU) { inclusive = true }
+                        }
+                    }
+                )
             }
 
             composable(Routes.LOAD_CALC) {

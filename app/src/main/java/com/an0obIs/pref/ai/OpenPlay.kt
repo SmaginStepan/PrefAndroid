@@ -2,7 +2,6 @@ package com.an0obIs.pref.ai
 
 import com.an0obIs.pref.model.Card
 import com.an0obIs.pref.model.Game
-import kotlin.random.Random
 
 abstract class OpenPlay {
 
@@ -38,7 +37,7 @@ abstract class OpenPlay {
             // Думать нечего
             return allowedMoves[0]
         }
-        val rnd = Random.Default
+        val rnd = game.aiRandom
         val situation = GameSituation(game, info, this)
         val distinctMoves = situation.getDistinctMoves()
         if (distinctMoves.isEmpty()) {

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Preferans</string>
     <string name="menu_subtitle">master</string>
@@ -282,4 +282,24 @@
     <string name="mp_game_over">¡La partida ha terminado!</string>
     <string name="score_title_fmt">Puntuación (hasta %d)</string>
     <string name="score_whists">WHISTS</string>
+
+    <!-- Season -->
+    <string name="menu_season">Temporada</string>
+    <string name="menu_season_sub">una carrera mensual con los mismos repartos</string>
+    <string name="season_days_left_fmt">Quedan %1$d días</string>
+    <string name="season_last_day">Último día</string>
+    <string name="season_over">La temporada ha terminado. Vuelve más tarde para la siguiente.</string>
+    <string name="season_rules_title">Reglas de la temporada</string>
+    <string name="season_consolation">Consolación</string>
+    <string name="season_yes">sí</string>
+    <string name="season_no">no</string>
+    <string name="season_progress_fmt">Pulkas cerradas: %1$d · Repartos jugados: %2$d</string>
+    <string name="season_total_fmt">Total de la temporada (vistas): %1$s</string>
+    <string name="season_note">Todos juegan los mismos repartos en el mismo orden, una sola vez y sin reiniciar. Tu puntuación es la suma de tus pulkas cerradas. El consejo está desactivado.</string>
+    <string name="season_play">Jugar</string>
+    <string name="season_need_network">Conéctate a internet una vez para obtener la temporada de este mes. Después puedes jugar sin conexión.</string>
+    <string name="season_loading">Cargando…</string>
+    <string name="season_retry">Reintentar</string>
+    <string name="season_board_title">Mejores jugadores</string>
+    <string name="season_board_empty">Aún no hay resultados. Cierra una pulka para ser el primero.</string>
 </resources>

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Preferans</string>
     <string name="menu_subtitle">master</string>
@@ -282,4 +282,24 @@
     <string name="mp_game_over">The game is over!</string>
     <string name="score_title_fmt">Score (to %d)</string>
     <string name="score_whists">WHISTS</string>
+
+    <!-- Season -->
+    <string name="menu_season">Season</string>
+    <string name="menu_season_sub">a monthly race on shared deals</string>
+    <string name="season_days_left_fmt">%1$d days left</string>
+    <string name="season_last_day">Last day</string>
+    <string name="season_over">This season has ended. Open this screen later for the next one.</string>
+    <string name="season_rules_title">This season\'s rules</string>
+    <string name="season_consolation">Consolation</string>
+    <string name="season_yes">yes</string>
+    <string name="season_no">no</string>
+    <string name="season_progress_fmt">Closed pools: %1$d · Deals played: %2$d</string>
+    <string name="season_total_fmt">Season total (whists): %1$s</string>
+    <string name="season_note">Everyone plays the same deals in the same order, once, with no restarts. Your score is the sum of your closed pools. Advice is off.</string>
+    <string name="season_play">Play</string>
+    <string name="season_need_network">Connect to the internet once to get this month\'s season. After that you can play offline.</string>
+    <string name="season_loading">Loading…</string>
+    <string name="season_retry">Retry</string>
+    <string name="season_board_title">Top players</string>
+    <string name="season_board_empty">No results yet. Close a pool to be first.</string>
 </resources>

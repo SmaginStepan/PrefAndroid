@@ -3,7 +3,6 @@ package com.an0obIs.pref.ai
 import com.an0obIs.pref.model.Card
 import com.an0obIs.pref.model.Game
 import com.an0obIs.pref.model.GameType
-import kotlin.random.Random
 
 abstract class HiddenPlay {
 
@@ -318,7 +317,7 @@ abstract class HiddenPlay {
             if (pair.value == min)
                 turns.add(pair.key)
         }
-        val rnd = Random.Default
+        val rnd = game.aiRandom
         return turns[rnd.nextInt(turns.size)]
     }
 }

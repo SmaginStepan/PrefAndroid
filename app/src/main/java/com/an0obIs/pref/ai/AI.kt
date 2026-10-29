@@ -1,16 +1,16 @@
-package com.an0obIs.pref.ai
+﻿package com.an0obIs.pref.ai
 
 import com.an0obIs.pref.model.Card
 import com.an0obIs.pref.model.Game
 import com.an0obIs.pref.model.GamePhase
 import com.an0obIs.pref.model.GameType
 import kotlin.math.floor
-import kotlin.random.Random
+import com.an0obIs.pref.model.PrefRandom
 
 object AI {
 
     fun makeMove(game: Game) {
-        val rnd = Random.Default
+        val rnd = game.aiRandom
         val info: AIInfo
         when (game.phase) {
             GamePhase.Discarding -> {
@@ -91,12 +91,12 @@ object AI {
         return if (game.currentGameType == GameType.Miser) {
             getCardsForMiserDiscard(info, game)
         } else {
-            getBestCardsForNormalDiscard(info, game.getAllowedBids())
+            getBestCardsForNormalDiscard(info, game.getAllowedBids(), game.aiRandom)
         }
     }
 
     fun playCard(info: AIInfo, game: Game): Card? {
-        val rnd = Random.Default
+        val rnd = game.aiRandom
         val allowedMoves = game.getAllowedMoves()
         val cardToPlay: Card?
         when (game.currentGameType) {
@@ -136,8 +136,7 @@ object AI {
         return cardToPlay
     }
 
-    private fun getBestCardsForNormalDiscard(info: AIInfo, bidsIn: List<Game.Bid>): Pair<Card, Card> {
-        val rnd = Random.Default
+    private fun getBestCardsForNormalDiscard(info: AIInfo, bidsIn: List<Game.Bid>, rnd: PrefRandom): Pair<Card, Card> {
         val bids = bidsIn.dropWhile { it.pas || it.miser }.take(5)
         val hand = info.myHand.visibleHand!!.clone()
         var max = -Double.MAX_VALUE
@@ -180,7 +179,7 @@ object AI {
 
     private fun getCardsForMiserDiscard(info: AIInfo, game: Game): Pair<Card, Card> {
         val list = Helper.getPotentialDiscards(info, game)!!
-        val rnd = Random.Default
+        val rnd = game.aiRandom
         val pSum = list.sumOf { it.probability }
         val pos = rnd.nextDouble() * pSum
         var cPos = 0.0

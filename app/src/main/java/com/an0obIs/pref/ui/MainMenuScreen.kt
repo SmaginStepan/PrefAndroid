@@ -117,6 +117,7 @@ fun MainMenuScreen(
     onNewGame: () -> Unit,
     onContinue: () -> Unit,
     onMultiplayer: () -> Unit,
+    onSeason: () -> Unit,
     onLearning: () -> Unit,
     onCalc: () -> Unit,
     onSettings: () -> Unit,
@@ -168,6 +169,7 @@ fun MainMenuScreen(
             MenuItem(stringResource(R.string.menu_continue), stringResource(R.string.menu_continue_sub), onContinue)
         }
         MenuItem(stringResource(R.string.mp_menu), stringResource(R.string.mp_menu_sub), onMultiplayer)
+        MenuItem(stringResource(R.string.menu_season), stringResource(R.string.menu_season_sub), onSeason)
         MenuItem(stringResource(R.string.menu_learning), stringResource(R.string.menu_learning_sub), onLearning)
         MenuItem(stringResource(R.string.menu_pulka), stringResource(R.string.menu_pulka_sub), onCalc)
         MenuItem(stringResource(R.string.menu_settings), stringResource(R.string.menu_settings_sub), onSettings)
