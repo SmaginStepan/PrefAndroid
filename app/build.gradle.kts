@@ -17,8 +17,27 @@ android {
         versionName = "2.1.0"
     }
 
+    // Real AdMob ids live in ~/.gradle/gradle.properties (never in git):
+    //   admobAppId=ca-app-pub-XXXXXXXXXXXXXXXX~NNNNNNNNNN
+    //   admobInterstitialId=ca-app-pub-XXXXXXXXXXXXXXXX/NNNNNNNNNN
+    // Debug builds use Google's test ids. A release build without real ids
+    // ships with ads switched off, so test ads can never reach players.
+    val testAppId = "ca-app-pub-3940256099942544~3347511713"
+    val testInterstitialId = "ca-app-pub-3940256099942544/1033173712"
+    val realAppId = providers.gradleProperty("admobAppId").orNull
+    val realInterstitialId = providers.gradleProperty("admobInterstitialId").orNull
+
     buildTypes {
+        debug {
+            buildConfigField("boolean", "ADS_ENABLED", "true")
+            buildConfigField("String", "ADMOB_INTERSTITIAL_ID", "\"$testInterstitialId\"")
+            manifestPlaceholders["admobAppId"] = testAppId
+        }
         release {
+            val adsReady = realAppId != null && realInterstitialId != null
+            buildConfigField("boolean", "ADS_ENABLED", adsReady.toString())
+            buildConfigField("String", "ADMOB_INTERSTITIAL_ID", "\"${realInterstitialId ?: testInterstitialId}\"")
+            manifestPlaceholders["admobAppId"] = realAppId ?: testAppId
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -38,6 +57,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -56,6 +76,9 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.okhttp)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.play.services.ads)
+    implementation(libs.ump)
+    implementation(libs.billing.ktx)
     testImplementation(libs.junit)
     debugImplementation(libs.androidx.ui.tooling)
 }

@@ -302,4 +302,19 @@
     <string name="season_retry">Повторить</string>
     <string name="season_board_title">Лучшие игроки</string>
     <string name="season_board_empty">Пока нет результатов. Закройте пулю, чтобы стать первым.</string>
+
+    <!-- Ads, purchase and rating -->
+    <string name="menu_rate">Оценить игру</string>
+    <string name="menu_rate_sub">оставьте отзыв в Google Play</string>
+    <string name="menu_remove_ads">Убрать рекламу</string>
+    <string name="menu_remove_ads_sub">один платёж — без рекламы навсегда</string>
+    <string name="ads_dialog_text">Заплатите один раз — и реклама между раздачами исчезнет навсегда. Спасибо, что поддерживаете игру!</string>
+    <string name="ads_buy_fmt">Убрать рекламу — %1$s</string>
+    <string name="ads_buy_plain">Убрать рекламу</string>
+    <string name="ads_unavailable">Магазин сейчас недоступен. Попробуйте позже.</string>
+    <string name="ads_restore">Восстановить покупку</string>
+    <string name="ads_thanks">Реклама отключена. Спасибо!</string>
+    <string name="rate_banner_text">Нравится «Преферанс мастер»? Оцените игру в Google Play.</string>
+    <string name="rate_banner_rate">Оценить</string>
+    <string name="rate_banner_later">Позже</string>
 </resources>

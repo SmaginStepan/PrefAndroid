@@ -24,7 +24,11 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.collectAsState
 import com.an0obIs.pref.R
+import com.an0obIs.pref.monetization.AdsManager
+import com.an0obIs.pref.monetization.BillingManager
+import com.an0obIs.pref.ui.misc.RemoveAdsDialog
 
 @Composable
 private fun MenuItem(title: String, subtitle: String, onClick: () -> Unit) {
@@ -123,6 +127,7 @@ fun MainMenuScreen(
     onSettings: () -> Unit,
     onHighScores: () -> Unit,
     onDictionary: () -> Unit,
+    onRate: () -> Unit,
     onAbout: () -> Unit
 ) {
     Column(
@@ -175,6 +180,15 @@ fun MainMenuScreen(
         MenuItem(stringResource(R.string.menu_settings), stringResource(R.string.menu_settings_sub), onSettings)
         MenuItem(stringResource(R.string.menu_records), stringResource(R.string.menu_records_sub), onHighScores)
         MenuItem(stringResource(R.string.menu_dictionary), stringResource(R.string.menu_dictionary_sub), onDictionary)
+        val adFree by BillingManager.adFree.collectAsState()
+        var showRemoveAds by remember { mutableStateOf(false) }
+        if (AdsManager.enabled && !adFree) {
+            MenuItem(stringResource(R.string.menu_remove_ads), stringResource(R.string.menu_remove_ads_sub)) {
+                showRemoveAds = true
+            }
+        }
+        if (showRemoveAds) RemoveAdsDialog(onDismiss = { showRemoveAds = false })
+        MenuItem(stringResource(R.string.menu_rate), stringResource(R.string.menu_rate_sub), onRate)
         MenuItem(stringResource(R.string.menu_about), stringResource(R.string.menu_about_sub), onAbout)
     }
 }

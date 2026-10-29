@@ -302,4 +302,19 @@
     <string name="season_retry">Reintentar</string>
     <string name="season_board_title">Mejores jugadores</string>
     <string name="season_board_empty">Aún no hay resultados. Cierra una pulka para ser el primero.</string>
+
+    <!-- Ads, purchase and rating -->
+    <string name="menu_rate">Valóranos</string>
+    <string name="menu_rate_sub">deja una reseña en Google Play</string>
+    <string name="menu_remove_ads">Quitar anuncios</string>
+    <string name="menu_remove_ads_sub">un solo pago, sin anuncios para siempre</string>
+    <string name="ads_dialog_text">Paga una vez y los anuncios entre repartos desaparecen para siempre. ¡Gracias por apoyar el juego!</string>
+    <string name="ads_buy_fmt">Quitar anuncios — %1$s</string>
+    <string name="ads_buy_plain">Quitar anuncios</string>
+    <string name="ads_unavailable">La tienda no está disponible ahora. Inténtalo más tarde.</string>
+    <string name="ads_restore">Restaurar compra</string>
+    <string name="ads_thanks">Anuncios eliminados. ¡Gracias!</string>
+    <string name="rate_banner_text">¿Te gusta Preferans Master? Valóralo en Google Play.</string>
+    <string name="rate_banner_rate">Valorar</string>
+    <string name="rate_banner_later">Luego</string>
 </resources>

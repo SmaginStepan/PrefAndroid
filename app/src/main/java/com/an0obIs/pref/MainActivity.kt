@@ -21,6 +21,10 @@ import androidx.navigation.navArgument
 import com.an0obIs.pref.model.Calculation
 import com.an0obIs.pref.model.Game
 import com.an0obIs.pref.model.Seasons
+import com.an0obIs.pref.monetization.AdsManager
+import com.an0obIs.pref.monetization.BillingManager
+import com.an0obIs.pref.monetization.Engagement
+import com.an0obIs.pref.ui.misc.openStorePage
 import com.an0obIs.pref.ui.MainMenuScreen
 import com.an0obIs.pref.ui.PlaceholderScreen
 import com.an0obIs.pref.ui.PrefTheme
@@ -77,6 +81,9 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             com.an0obIs.pref.model.GlobalScores.flushPending()
         }
+        // purchases first (they decide whether any ad is ever requested), then ads
+        BillingManager.start(this)
+        AdsManager.init(this)
         setContent {
             PrefTheme {
                 Surface(
@@ -90,6 +97,12 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // catches a purchase or refund that happened outside the app
+        BillingManager.refresh()
     }
 
     override fun onStop() {
@@ -122,6 +135,10 @@ class MainActivity : AppCompatActivity() {
                     onSettings = { navController.navigate(Routes.SETTINGS) },
                     onHighScores = { navController.navigate(Routes.HIGH_SCORES) },
                     onDictionary = { navController.navigate(Routes.DICTIONARY) },
+                    onRate = {
+                        openStorePage(this@MainActivity)
+                        Engagement.markRated()
+                    },
                     onAbout = { navController.navigate(Routes.ABOUT) }
                 )
             }
@@ -129,7 +146,14 @@ class MainActivity : AppCompatActivity() {
             composable(Routes.GAME) {
                 GameScreen(
                     app = app,
-                    onShowScore = { navController.navigate(Routes.SHEET_GAME) }
+                    // a single-player deal just ended: count it, maybe show the
+                    // ad, then the score table (multiplayer never comes here)
+                    onShowScore = {
+                        val deals = Engagement.dealFinished()
+                        AdsManager.showIfDue(this@MainActivity, deals) {
+                            navController.navigate(Routes.SHEET_GAME)
+                        }
+                    }
                 )
             }
 

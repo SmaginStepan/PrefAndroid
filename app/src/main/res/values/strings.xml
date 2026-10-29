@@ -302,4 +302,19 @@
     <string name="season_retry">Retry</string>
     <string name="season_board_title">Top players</string>
     <string name="season_board_empty">No results yet. Close a pool to be first.</string>
+
+    <!-- Ads, purchase and rating -->
+    <string name="menu_rate">Rate us</string>
+    <string name="menu_rate_sub">leave a review on Google Play</string>
+    <string name="menu_remove_ads">Remove ads</string>
+    <string name="menu_remove_ads_sub">one payment, ad-free forever</string>
+    <string name="ads_dialog_text">Pay once and the ads between deals disappear for good. Thank you for supporting the game!</string>
+    <string name="ads_buy_fmt">Remove ads — %1$s</string>
+    <string name="ads_buy_plain">Remove ads</string>
+    <string name="ads_unavailable">The store is not available right now. Please try again later.</string>
+    <string name="ads_restore">Restore purchase</string>
+    <string name="ads_thanks">Ads are removed. Thank you!</string>
+    <string name="rate_banner_text">Enjoying Preferans Master? Please rate it on Google Play.</string>
+    <string name="rate_banner_rate">Rate</string>
+    <string name="rate_banner_later">Later</string>
 </resources>

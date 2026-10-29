@@ -234,6 +234,10 @@ fun CalcSheetScreen(
     val arrows = if (playersCount == 3) ARROWS_3 else ARROWS_4
     val lines = if (playersCount == 3) LINES_3 else LINES_4
     val ctx = LocalContext.current
+    val showRateBanner = remember {
+        fromGame && com.an0obIs.pref.monetization.Engagement.rateBannerDue()
+    }
+    var rateBannerHidden by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Text(
@@ -321,6 +325,17 @@ fun CalcSheetScreen(
 
         // Bottom action bar
         if (fromGame) {
+            // every tenth single-player deal, until the player has rated
+            if (showRateBanner && !rateBannerHidden) {
+                com.an0obIs.pref.ui.misc.RateBanner(
+                    onRate = {
+                        com.an0obIs.pref.ui.misc.openStorePage(ctx)
+                        com.an0obIs.pref.monetization.Engagement.markRated()
+                        rateBannerHidden = true
+                    },
+                    onLater = { rateBannerHidden = true }
+                )
+            }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
