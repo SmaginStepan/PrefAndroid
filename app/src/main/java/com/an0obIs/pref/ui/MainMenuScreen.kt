@@ -128,6 +128,7 @@ fun MainMenuScreen(
     onHighScores: () -> Unit,
     onDictionary: () -> Unit,
     onRate: () -> Unit,
+    onPrivacy: () -> Unit,
     onAbout: () -> Unit
 ) {
     Column(
@@ -189,6 +190,10 @@ fun MainMenuScreen(
         }
         if (showRemoveAds) RemoveAdsDialog(onDismiss = { showRemoveAds = false })
         MenuItem(stringResource(R.string.menu_rate), stringResource(R.string.menu_rate_sub), onRate)
+        val privacyRequired by AdsManager.privacyOptionsRequired.collectAsState()
+        if (AdsManager.enabled && !adFree && privacyRequired) {
+            MenuItem(stringResource(R.string.menu_privacy), stringResource(R.string.menu_privacy_sub), onPrivacy)
+        }
         MenuItem(stringResource(R.string.menu_about), stringResource(R.string.menu_about_sub), onAbout)
     }
 }

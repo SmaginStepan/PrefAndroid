@@ -139,6 +139,7 @@ class MainActivity : AppCompatActivity() {
                         openStorePage(this@MainActivity)
                         Engagement.markRated()
                     },
+                    onPrivacy = { AdsManager.showPrivacyOptions(this@MainActivity) },
                     onAbout = { navController.navigate(Routes.ABOUT) }
                 )
             }

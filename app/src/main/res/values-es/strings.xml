@@ -306,6 +306,8 @@
     <!-- Ads, purchase and rating -->
     <string name="menu_rate">Valóranos</string>
     <string name="menu_rate_sub">deja una reseña en Google Play</string>
+    <string name="menu_privacy">Privacidad</string>
+    <string name="menu_privacy_sub">cambia tu consentimiento de anuncios</string>
     <string name="menu_remove_ads">Quitar anuncios</string>
     <string name="menu_remove_ads_sub">un solo pago, sin anuncios para siempre</string>
     <string name="ads_dialog_text">Paga una vez y los anuncios entre repartos desaparecen para siempre. ¡Gracias por apoyar el juego!</string>

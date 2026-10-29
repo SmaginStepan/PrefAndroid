@@ -14,6 +14,8 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.ump.ConsentInformation
 import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * The interstitial between a finished deal and its score table. The game stays
@@ -27,6 +29,11 @@ object AdsManager {
     private var interstitial: InterstitialAd? = null
     private var lastShownAt = Long.MIN_VALUE / 2
 
+    private val _privacyOptionsRequired = MutableStateFlow(false)
+
+    /** True where the law asks for a way to reopen the consent choice (EEA, UK). */
+    val privacyOptionsRequired: StateFlow<Boolean> = _privacyOptionsRequired
+
     val enabled: Boolean get() = BuildConfig.ADS_ENABLED
 
     /**
@@ -36,17 +43,33 @@ object AdsManager {
     fun init(activity: Activity) {
         if (!enabled || Engagement.adFree) return
         val consent = UserMessagingPlatform.getConsentInformation(activity)
+        refreshPrivacyOptions(consent)
         consent.requestConsentInfoUpdate(
             activity,
             ConsentRequestParameters.Builder().build(),
             {
                 UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) {
+                    refreshPrivacyOptions(consent)
                     startSdk(activity, consent)
                 }
             },
             { startSdk(activity, consent) } // offline or failed: still honour an earlier choice
         )
         if (consent.canRequestAds()) startSdk(activity, consent)
+    }
+
+    /** Lets the player change their ad consent choice, from the menu. */
+    fun showPrivacyOptions(activity: Activity) {
+        val consent = UserMessagingPlatform.getConsentInformation(activity)
+        UserMessagingPlatform.showPrivacyOptionsForm(activity) {
+            refreshPrivacyOptions(consent)
+            startSdk(activity, consent)
+        }
+    }
+
+    private fun refreshPrivacyOptions(consent: ConsentInformation) {
+        _privacyOptionsRequired.value = consent.privacyOptionsRequirementStatus ==
+            ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED
     }
 
     private fun startSdk(context: Context, consent: ConsentInformation) {

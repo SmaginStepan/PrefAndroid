@@ -306,6 +306,8 @@
     <!-- Ads, purchase and rating -->
     <string name="menu_rate">Оценить игру</string>
     <string name="menu_rate_sub">оставьте отзыв в Google Play</string>
+    <string name="menu_privacy">Конфиденциальность</string>
+    <string name="menu_privacy_sub">изменить согласие на рекламу</string>
     <string name="menu_remove_ads">Убрать рекламу</string>
     <string name="menu_remove_ads_sub">один платёж — без рекламы навсегда</string>
     <string name="ads_dialog_text">Заплатите один раз — и реклама между раздачами исчезнет навсегда. Спасибо, что поддерживаете игру!</string>

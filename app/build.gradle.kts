@@ -13,8 +13,8 @@ android {
         applicationId = "com.an0obIs.pref"
         minSdk = 26
         targetSdk = 36
-        versionCode = 12
-        versionName = "2.1.0"
+        versionCode = 13
+        versionName = "2.2.0"
     }
 
     // Real AdMob ids live in ~/.gradle/gradle.properties (never in git):

@@ -306,6 +306,8 @@
     <!-- Ads, purchase and rating -->
     <string name="menu_rate">Rate us</string>
     <string name="menu_rate_sub">leave a review on Google Play</string>
+    <string name="menu_privacy">Privacy settings</string>
+    <string name="menu_privacy_sub">change your ad consent choice</string>
     <string name="menu_remove_ads">Remove ads</string>
     <string name="menu_remove_ads_sub">one payment, ad-free forever</string>
     <string name="ads_dialog_text">Pay once and the ads between deals disappear for good. Thank you for supporting the game!</string>
